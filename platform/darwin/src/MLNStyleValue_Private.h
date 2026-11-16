@@ -214,7 +214,6 @@ private:  // Private utilities for converting from mgl to mbgl values
       getMBGLValue(array[1], mbglValue[1]);
       getMBGLValue(array[2], mbglValue[2]);
       getMBGLValue(array[3], mbglValue[3]);
-      getMBGLValue(array[4], mbglValue[4]);
     }
   }
 
