@@ -1,0 +1,162 @@
+{
+  "version": 8,
+  "metadata": {
+    "test": {
+      "width": 256,
+      "height": 160,
+      "pixelRatio": 1,
+      "operations": [
+        [
+          "addImage",
+          "rocket",
+          "./image/rocket.png"
+        ],
+        [
+          "addLayer",
+          {
+            "id": "fill",
+            "type": "fill",
+            "source": "geojson",
+            "paint": {
+              "fill-antialias": false,
+              "fill-pattern": "rocket",
+              "fill-pattern-fit": "cover",
+              "fill-pattern-bounds": [
+                "semiliteral",
+                [
+                  [
+                    "number",
+                    [
+                      "get",
+                      "w"
+                    ]
+                  ],
+                  [
+                    "number",
+                    [
+                      "get",
+                      "s"
+                    ]
+                  ],
+                  [
+                    "number",
+                    [
+                      "get",
+                      "e"
+                    ]
+                  ],
+                  [
+                    "number",
+                    [
+                      "get",
+                      "n"
+                    ]
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        [
+          "wait"
+        ]
+      ]
+    }
+  },
+  "center": [
+    0,
+    0
+  ],
+  "zoom": 1,
+  "sources": {
+    "geojson": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {
+              "w": -50,
+              "s": -25,
+              "e": -5,
+              "n": 25
+            },
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -50,
+                    -25
+                  ],
+                  [
+                    -50,
+                    25
+                  ],
+                  [
+                    -5,
+                    25
+                  ],
+                  [
+                    -5,
+                    -25
+                  ],
+                  [
+                    -50,
+                    -25
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "type": "Feature",
+            "properties": {
+              "w": 5,
+              "s": -10,
+              "e": 60,
+              "n": 10
+            },
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    5,
+                    -10
+                  ],
+                  [
+                    5,
+                    10
+                  ],
+                  [
+                    60,
+                    10
+                  ],
+                  [
+                    60,
+                    -10
+                  ],
+                  [
+                    5,
+                    -10
+                  ]
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "white"
+      }
+    }
+  ]
+}

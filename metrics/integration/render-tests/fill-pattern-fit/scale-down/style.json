@@ -1,0 +1,85 @@
+{
+  "version": 8,
+  "metadata": {
+    "test": {
+      "width": 256,
+      "height": 160,
+      "pixelRatio": 1,
+      "operations": [
+        [
+          "addImage",
+          "rocket",
+          "./image/rocket.png"
+        ],
+        [
+          "addLayer",
+          {
+            "id": "fill",
+            "type": "fill",
+            "source": "geojson",
+            "paint": {
+              "fill-antialias": false,
+              "fill-pattern": "rocket",
+              "fill-pattern-fit": "scale-down",
+              "fill-pattern-bounds": [
+                -40,
+                -20,
+                40,
+                20
+              ]
+            }
+          }
+        ],
+        [
+          "wait"
+        ]
+      ]
+    }
+  },
+  "center": [
+    0,
+    0
+  ],
+  "zoom": 1,
+  "sources": {
+    "geojson": {
+      "type": "geojson",
+      "data": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -40,
+              -20
+            ],
+            [
+              -40,
+              20
+            ],
+            [
+              40,
+              20
+            ],
+            [
+              40,
+              -20
+            ],
+            [
+              -40,
+              -20
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "white"
+      }
+    }
+  ]
+}
