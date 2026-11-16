@@ -190,7 +190,7 @@ global.propertyNativeType = function (property) {
   if (/-(rotation|pitch|illumination)-alignment$/.test(property.name)) {
     return 'AlignmentType';
   }
-  if (/^(text|icon)-anchor$/.test(property.name)) {
+  if (/^(text|icon|fill-pattern)-anchor$/.test(property.name)) {
     return 'SymbolAnchorType';
   }
   switch (property.type) {
@@ -414,7 +414,7 @@ global.evaluatedType = function (property) {
   if (/-(rotation|pitch|illumination)-alignment$/.test(property.name)) {
     return 'AlignmentType';
   }
-  if (/^(text|icon)-anchor$/.test(property.name)) {
+  if (/^(text|icon|fill-pattern)-anchor$/.test(property.name)) {
     return 'SymbolAnchorType';
   }
   if (/position/.test(property.name)) {

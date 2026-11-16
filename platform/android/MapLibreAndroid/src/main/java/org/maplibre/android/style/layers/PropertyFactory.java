@@ -201,6 +201,66 @@ public class PropertyFactory {
   }
 
   /**
+   * How the image of {@link PropertyFactory#fillPattern} fills each polygon. Every value other than `repeat` draws one image per polygon, placed in {@link PropertyFactory#fillPatternBounds}; without bounds they behave like `repeat`.
+   *
+   * @param value a String value
+   * @return property wrapper around String
+   */
+  public static PropertyValue<String> fillPatternFit(@Property.FILL_PATTERN_FIT String value) {
+    return new PaintPropertyValue<>("fill-pattern-fit", value);
+  }
+
+  /**
+   * How the image of {@link PropertyFactory#fillPattern} fills each polygon. Every value other than `repeat` draws one image per polygon, placed in {@link PropertyFactory#fillPatternBounds}; without bounds they behave like `repeat`.
+   *
+   * @param expression an expression statement
+   * @return property wrapper around an expression statement
+   */
+  public static PropertyValue<Expression> fillPatternFit(Expression expression) {
+    return new PaintPropertyValue<>("fill-pattern-fit", expression);
+  }
+
+  /**
+   * Where the image of {@link PropertyFactory#fillPattern} is placed in {@link PropertyFactory#fillPatternBounds}.
+   *
+   * @param value a String value
+   * @return property wrapper around String
+   */
+  public static PropertyValue<String> fillPatternAnchor(@Property.FILL_PATTERN_ANCHOR String value) {
+    return new PaintPropertyValue<>("fill-pattern-anchor", value);
+  }
+
+  /**
+   * Where the image of {@link PropertyFactory#fillPattern} is placed in {@link PropertyFactory#fillPatternBounds}.
+   *
+   * @param expression an expression statement
+   * @return property wrapper around an expression statement
+   */
+  public static PropertyValue<Expression> fillPatternAnchor(Expression expression) {
+    return new PaintPropertyValue<>("fill-pattern-anchor", expression);
+  }
+
+  /**
+   * The box that {@link Property.FILL_PATTERN_FIT} and {@link Property.FILL_PATTERN_ANCHOR} place the image in, as `[west, south, east, north]` in longitude and latitude. Tiles cut polygons, so the box of the whole polygon comes from the data, for example with `["semiliteral", [["number", ["get", "w"]], ["number", ["get", "s"]], ["number", ["get", "e"]], ["number", ["get", "n"]]]]`.
+   *
+   * @param value a Float[] value
+   * @return property wrapper around Float[]
+   */
+  public static PropertyValue<Float[]> fillPatternBounds(Float[] value) {
+    return new PaintPropertyValue<>("fill-pattern-bounds", value);
+  }
+
+  /**
+   * The box that {@link Property.FILL_PATTERN_FIT} and {@link Property.FILL_PATTERN_ANCHOR} place the image in, as `[west, south, east, north]` in longitude and latitude. Tiles cut polygons, so the box of the whole polygon comes from the data, for example with `["semiliteral", [["number", ["get", "w"]], ["number", ["get", "s"]], ["number", ["get", "e"]], ["number", ["get", "n"]]]]`.
+   *
+   * @param expression an expression statement
+   * @return property wrapper around an expression statement
+   */
+  public static PropertyValue<Expression> fillPatternBounds(Expression expression) {
+    return new PaintPropertyValue<>("fill-pattern-bounds", expression);
+  }
+
+  /**
    * The opacity at which the line will be drawn.
    *
    * @param value a Float value

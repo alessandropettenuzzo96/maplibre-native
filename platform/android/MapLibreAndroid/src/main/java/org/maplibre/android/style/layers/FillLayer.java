@@ -378,6 +378,42 @@ public class FillLayer extends Layer {
     nativeSetFillPatternTransition(options.getDuration(), options.getDelay());
   }
 
+  /**
+   * Get the FillPatternFit property
+   *
+   * @return property wrapper value around String
+   */
+  @NonNull
+  @SuppressWarnings("unchecked")
+  public PropertyValue<String> getFillPatternFit() {
+    checkThread();
+    return (PropertyValue<String>) new PropertyValue("fill-pattern-fit", nativeGetFillPatternFit());
+  }
+
+  /**
+   * Get the FillPatternAnchor property
+   *
+   * @return property wrapper value around String
+   */
+  @NonNull
+  @SuppressWarnings("unchecked")
+  public PropertyValue<String> getFillPatternAnchor() {
+    checkThread();
+    return (PropertyValue<String>) new PropertyValue("fill-pattern-anchor", nativeGetFillPatternAnchor());
+  }
+
+  /**
+   * Get the FillPatternBounds property
+   *
+   * @return property wrapper value around Float[]
+   */
+  @NonNull
+  @SuppressWarnings("unchecked")
+  public PropertyValue<Float[]> getFillPatternBounds() {
+    checkThread();
+    return (PropertyValue<Float[]>) new PropertyValue("fill-pattern-bounds", nativeGetFillPatternBounds());
+  }
+
   @NonNull
   @Keep
   private native Object nativeGetFillSortKey();
@@ -444,6 +480,18 @@ public class FillLayer extends Layer {
 
   @Keep
   private native void nativeSetFillPatternTransition(long duration, long delay);
+
+  @NonNull
+  @Keep
+  private native Object nativeGetFillPatternFit();
+
+  @NonNull
+  @Keep
+  private native Object nativeGetFillPatternAnchor();
+
+  @NonNull
+  @Keep
+  private native Object nativeGetFillPatternBounds();
 
   @Override
   @Keep

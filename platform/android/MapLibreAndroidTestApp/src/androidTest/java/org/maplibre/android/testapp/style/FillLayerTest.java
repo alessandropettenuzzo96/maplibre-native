@@ -425,4 +425,56 @@ public class FillLayerTest extends BaseLayerTest {
     layer.setProperties(fillPattern(expression));
     assertEquals(layer.getFillPattern().getExpression(), expression);
   }
+
+  @Test
+  @UiThreadTest
+  public void testFillPatternFitAsConstant() {
+    Timber.i("fill-pattern-fit");
+    assertNotNull(layer);
+    assertNull(layer.getFillPatternFit().getValue());
+
+    // Set and Get
+    String propertyValue = FILL_PATTERN_FIT_REPEAT;
+    layer.setProperties(fillPatternFit(propertyValue));
+    assertEquals(layer.getFillPatternFit().getValue(), propertyValue);
+  }
+
+  @Test
+  @UiThreadTest
+  public void testFillPatternAnchorAsConstant() {
+    Timber.i("fill-pattern-anchor");
+    assertNotNull(layer);
+    assertNull(layer.getFillPatternAnchor().getValue());
+
+    // Set and Get
+    String propertyValue = FILL_PATTERN_ANCHOR_CENTER;
+    layer.setProperties(fillPatternAnchor(propertyValue));
+    assertEquals(layer.getFillPatternAnchor().getValue(), propertyValue);
+  }
+
+  @Test
+  @UiThreadTest
+  public void testFillPatternBoundsAsConstant() {
+    Timber.i("fill-pattern-bounds");
+    assertNotNull(layer);
+    assertNull(layer.getFillPatternBounds().getValue());
+
+    // Set and Get
+    Float[] propertyValue = new Float[] {0f, 0f, 0f, 0f};
+    layer.setProperties(fillPatternBounds(propertyValue));
+    assertArrayEquals(layer.getFillPatternBounds().getValue(), propertyValue);
+  }
+
+  @Test
+  @UiThreadTest
+  public void testFillPatternBoundsAsExpression() {
+    Timber.i("fill-pattern-bounds-expression");
+    assertNotNull(layer);
+    assertNull(layer.getFillPatternBounds().getExpression());
+
+    // Set and Get
+    Expression expression = array(Expression.get("undefined"));
+    layer.setProperties(fillPatternBounds(expression));
+    assertEquals(layer.getFillPatternBounds().getExpression(), expression);
+  }
 }

@@ -459,6 +459,108 @@ public final class Property {
   @Retention(RetentionPolicy.SOURCE)
   public @interface FILL_TRANSLATE_ANCHOR {}
 
+  // FILL_PATTERN_FIT: How the image of `fill-pattern` fills each polygon. Every value other than `repeat` draws one image per polygon, placed in `fill-pattern-bounds`; without bounds they behave like `repeat`.
+
+  /**
+   * The image repeats, aligned to the world origin, or to {@link FILL_PATTERN_BOUNDS} and {@link FILL_PATTERN_ANCHOR} when bounds are set.
+   */
+  public static final String FILL_PATTERN_FIT_REPEAT = "repeat";
+  /**
+   * The image is stretched to the bounds, ignoring its aspect ratio.
+   */
+  public static final String FILL_PATTERN_FIT_FILL = "fill";
+  /**
+   * The image is scaled to fit inside the bounds, keeping its aspect ratio. The rest is transparent.
+   */
+  public static final String FILL_PATTERN_FIT_CONTAIN = "contain";
+  /**
+   * The image is scaled to cover the bounds, keeping its aspect ratio, and cropped by the polygon.
+   */
+  public static final String FILL_PATTERN_FIT_COVER = "cover";
+  /**
+   * The image keeps its natural size on screen and is cropped by the polygon.
+   */
+  public static final String FILL_PATTERN_FIT_NONE = "none";
+  /**
+   * The smaller of {@link Property#FILL_PATTERN_FIT_NONE} and {@link Property#FILL_PATTERN_FIT_CONTAIN}.
+   */
+  public static final String FILL_PATTERN_FIT_SCALE_DOWN = "scale-down";
+  /**
+   * The larger of {@link Property#FILL_PATTERN_FIT_NONE} and {@link Property#FILL_PATTERN_FIT_COVER}.
+   */
+  public static final String FILL_PATTERN_FIT_SCALE_UP = "scale-up";
+
+  /**
+   * How the image of `fill-pattern` fills each polygon. Every value other than `repeat` draws one image per polygon, placed in `fill-pattern-bounds`; without bounds they behave like `repeat`.
+   */
+  @StringDef({
+      FILL_PATTERN_FIT_REPEAT,
+      FILL_PATTERN_FIT_FILL,
+      FILL_PATTERN_FIT_CONTAIN,
+      FILL_PATTERN_FIT_COVER,
+      FILL_PATTERN_FIT_NONE,
+      FILL_PATTERN_FIT_SCALE_DOWN,
+      FILL_PATTERN_FIT_SCALE_UP,
+    })
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface FILL_PATTERN_FIT {}
+
+  // FILL_PATTERN_ANCHOR: Where the image of `fill-pattern` is placed in `fill-pattern-bounds`.
+
+  /**
+   * The center of the image is at the center of the bounds.
+   */
+  public static final String FILL_PATTERN_ANCHOR_CENTER = "center";
+  /**
+   * The left edge of the image is at the left edge of the bounds, centered vertically.
+   */
+  public static final String FILL_PATTERN_ANCHOR_LEFT = "left";
+  /**
+   * The right edge of the image is at the right edge of the bounds, centered vertically.
+   */
+  public static final String FILL_PATTERN_ANCHOR_RIGHT = "right";
+  /**
+   * The top edge of the image is at the top edge of the bounds, centered horizontally.
+   */
+  public static final String FILL_PATTERN_ANCHOR_TOP = "top";
+  /**
+   * The bottom edge of the image is at the bottom edge of the bounds, centered horizontally.
+   */
+  public static final String FILL_PATTERN_ANCHOR_BOTTOM = "bottom";
+  /**
+   * The top left corner of the image is at the top left corner of the bounds.
+   */
+  public static final String FILL_PATTERN_ANCHOR_TOP_LEFT = "top-left";
+  /**
+   * The top right corner of the image is at the top right corner of the bounds.
+   */
+  public static final String FILL_PATTERN_ANCHOR_TOP_RIGHT = "top-right";
+  /**
+   * The bottom left corner of the image is at the bottom left corner of the bounds.
+   */
+  public static final String FILL_PATTERN_ANCHOR_BOTTOM_LEFT = "bottom-left";
+  /**
+   * The bottom right corner of the image is at the bottom right corner of the bounds.
+   */
+  public static final String FILL_PATTERN_ANCHOR_BOTTOM_RIGHT = "bottom-right";
+
+  /**
+   * Where the image of `fill-pattern` is placed in `fill-pattern-bounds`.
+   */
+  @StringDef({
+      FILL_PATTERN_ANCHOR_CENTER,
+      FILL_PATTERN_ANCHOR_LEFT,
+      FILL_PATTERN_ANCHOR_RIGHT,
+      FILL_PATTERN_ANCHOR_TOP,
+      FILL_PATTERN_ANCHOR_BOTTOM,
+      FILL_PATTERN_ANCHOR_TOP_LEFT,
+      FILL_PATTERN_ANCHOR_TOP_RIGHT,
+      FILL_PATTERN_ANCHOR_BOTTOM_LEFT,
+      FILL_PATTERN_ANCHOR_BOTTOM_RIGHT,
+    })
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface FILL_PATTERN_ANCHOR {}
+
   // LINE_TRANSLATE_ANCHOR: Controls the frame of reference for `line-translate`.
 
   /**

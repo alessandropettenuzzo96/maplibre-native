@@ -220,6 +220,7 @@ global.objCTestValue = function (property, layerType, arraysAsStructs, indent) {
                     return '@"{1, 2}"';
                 case 'font':
                     return `@"{'${_.startCase(propertyName)}', '${_.startCase(_.reverse(propertyName.split('')).join(''))}'}"`;
+                case 'bounds':
                 case 'padding': {
                     return paddingTestValue();
                 }
@@ -264,7 +265,7 @@ global.mbglTestValue = function (property, layerType) {
             if (/-(rotation|pitch)-alignment$/.test(originalPropertyName(property))) {
                 type = 'Alignment';
             }
-            if (/^(text|icon)-anchor$/.test(originalPropertyName(property))) {
+            if (/^(text|icon|fill-pattern)-anchor$/.test(originalPropertyName(property))) {
                 type = 'SymbolAnchor'
             }
             let value = camelize(_.last(_.keys(property.values)));
@@ -287,6 +288,7 @@ global.mbglTestValue = function (property, layerType) {
                     return '{1, 2}';
                 case 'font':
                     return `{ "${_.startCase(propertyName)}", "${_.startCase(_.reverse(propertyName.split('')).join(''))}" }`;
+                case 'bounds':
                 case 'padding':
                     return '{ 1, 1, 1, 1 }';
                 case 'offset':
@@ -368,6 +370,7 @@ global.testHelperMessage = function (property, layerType, isFunction) {
                     return 'testDashArray' + fnSuffix;
                 case 'font':
                     return 'testFont' + fnSuffix;
+                case 'bounds':
                 case 'padding':
                     return 'testPadding' + fnSuffix;
                 case 'offset':
@@ -552,6 +555,7 @@ global.describeType = function (property) {
             return '`UIEdgeInsets`';
         case 'array':
             switch (arrayType(property)) {
+                case 'bounds':
                 case 'padding':
                     return '`UIEdgeInsets`';
                 case 'offset':
@@ -663,6 +667,7 @@ global.describeValue = function (value, property, layerType) {
                 units = ` ${units}`.replace(/pixel/, 'point');
             }
             switch (arrayType(property)) {
+                case 'bounds':
                 case 'padding':
                     return describePadding();
                 case 'offset':
@@ -726,6 +731,7 @@ global.propertyType = function (property) {
                     return 'NSArray<NSNumber *> *';
                 case 'font':
                     return 'NSArray<NSString *> *';
+                case 'bounds':
                 case 'padding':
                 case 'position':
                 case 'offset':
@@ -784,6 +790,7 @@ global.valueTransformerArguments = function (property) {
                     return ['std::vector<float>', objCType, 'float'];
                 case 'font':
                     return ['std::vector<std::string>', objCType, 'std::string'];
+                case 'bounds':
                 case 'padding':
                     return ['std::array<float, 4>', objCType];
                 case 'position':
@@ -826,7 +833,7 @@ global.mbglType = function(property) {
             if (/-(rotation|pitch)-alignment$/.test(originalPropertyName(property))) {
                 type = 'Alignment';
             }
-            if (/^(text|icon)-anchor$/.test(originalPropertyName(property))) {
+            if (/^(text|icon|fill-pattern)-anchor$/.test(originalPropertyName(property))) {
                 type = 'SymbolAnchor'
             }
             return `mln::style::${type}Type`;
@@ -847,6 +854,7 @@ global.mbglType = function(property) {
                     return 'std::vector<float>';
                 case 'font':
                     return 'std::vector<std::string>';
+                case 'bounds':
                 case 'padding':
                     return 'std::array<float, 4>';
                 case 'offset':

@@ -216,6 +216,33 @@ void FillLayer::setFillPatternTransition(jni::JNIEnv&, jlong duration, jlong del
     toFillLayer(*layer).setFillPatternTransition(options);
 }
 
+jni::Local<jni::Object<>> FillLayer::getFillPatternFit(jni::JNIEnv& env) {
+    using namespace mln::android::conversion;
+    auto layer = layerPtr.get();
+    if (!layer) {
+        return std::move(*convert<jni::Local<jni::Object<>>>(env, style::FillLayer::getDefaultFillPatternFit()));
+    }
+    return std::move(*convert<jni::Local<jni::Object<>>>(env, toFillLayer(*layer).getFillPatternFit()));
+}
+
+jni::Local<jni::Object<>> FillLayer::getFillPatternAnchor(jni::JNIEnv& env) {
+    using namespace mln::android::conversion;
+    auto layer = layerPtr.get();
+    if (!layer) {
+        return std::move(*convert<jni::Local<jni::Object<>>>(env, style::FillLayer::getDefaultFillPatternAnchor()));
+    }
+    return std::move(*convert<jni::Local<jni::Object<>>>(env, toFillLayer(*layer).getFillPatternAnchor()));
+}
+
+jni::Local<jni::Object<>> FillLayer::getFillPatternBounds(jni::JNIEnv& env) {
+    using namespace mln::android::conversion;
+    auto layer = layerPtr.get();
+    if (!layer) {
+        return std::move(*convert<jni::Local<jni::Object<>>>(env, style::FillLayer::getDefaultFillPatternBounds()));
+    }
+    return std::move(*convert<jni::Local<jni::Object<>>>(env, toFillLayer(*layer).getFillPatternBounds()));
+}
+
 // FillJavaLayerPeerFactory
 
 FillJavaLayerPeerFactory::~FillJavaLayerPeerFactory() = default;
@@ -273,7 +300,10 @@ void FillJavaLayerPeerFactory::registerNative(jni::JNIEnv& env) {
         METHOD(&FillLayer::getFillTranslateAnchor, "nativeGetFillTranslateAnchor"),
         METHOD(&FillLayer::getFillPatternTransition, "nativeGetFillPatternTransition"),
         METHOD(&FillLayer::setFillPatternTransition, "nativeSetFillPatternTransition"),
-        METHOD(&FillLayer::getFillPattern, "nativeGetFillPattern"));
+        METHOD(&FillLayer::getFillPattern, "nativeGetFillPattern"),
+        METHOD(&FillLayer::getFillPatternFit, "nativeGetFillPatternFit"),
+        METHOD(&FillLayer::getFillPatternAnchor, "nativeGetFillPatternAnchor"),
+        METHOD(&FillLayer::getFillPatternBounds, "nativeGetFillPatternBounds"));
 }
 
 } // namespace android
