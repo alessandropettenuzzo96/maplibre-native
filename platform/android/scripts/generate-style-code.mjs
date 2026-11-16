@@ -377,7 +377,7 @@ global.propertyValueDoc = function (property, value) {
     doc = doc.replace(/`(.+?)`/g, function (m, symbol, offset, str) {
         if ('values' in property && Object.keys(property.values).indexOf(symbol) !== -1) {
             // Property values
-            propertyValue = snakeCaseUpper(property.name) + '_' + snakeCaseUpper(symbol);
+            const propertyValue = snakeCaseUpper(property.name) + '_' + snakeCaseUpper(symbol);
             console.log("Transforming", symbol, propertyValue);
             return '{@link Property#' + `${propertyValue}` + '}';
         } else if (str.substr(offset - 4, 3) !== 'CSS' && symbol[0].toUpperCase() != symbol[0]) {
