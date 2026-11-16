@@ -57,6 +57,24 @@ public:
     void setFillPatternTransition(const TransitionOptions&);
     TransitionOptions getFillPatternTransition() const;
 
+    static PropertyValue<SymbolAnchorType> getDefaultFillPatternAnchor();
+    const PropertyValue<SymbolAnchorType>& getFillPatternAnchor() const;
+    void setFillPatternAnchor(const PropertyValue<SymbolAnchorType>&);
+    void setFillPatternAnchorTransition(const TransitionOptions&);
+    TransitionOptions getFillPatternAnchorTransition() const;
+
+    static PropertyValue<std::array<float, 4>> getDefaultFillPatternBounds();
+    const PropertyValue<std::array<float, 4>>& getFillPatternBounds() const;
+    void setFillPatternBounds(const PropertyValue<std::array<float, 4>>&);
+    void setFillPatternBoundsTransition(const TransitionOptions&);
+    TransitionOptions getFillPatternBoundsTransition() const;
+
+    static PropertyValue<FillPatternFitType> getDefaultFillPatternFit();
+    const PropertyValue<FillPatternFitType>& getFillPatternFit() const;
+    void setFillPatternFit(const PropertyValue<FillPatternFitType>&);
+    void setFillPatternFitTransition(const TransitionOptions&);
+    TransitionOptions getFillPatternFitTransition() const;
+
     static PropertyValue<std::array<float, 2>> getDefaultFillTranslate();
     const PropertyValue<std::array<float, 2>>& getFillTranslate() const;
     void setFillTranslate(const PropertyValue<std::array<float, 2>>&);

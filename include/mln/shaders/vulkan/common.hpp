@@ -75,6 +75,32 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper, const vec2 pixel_coord_lower,
     return (tile_units_to_pixels * pos + offset) / pattern_size;
 }
 
+// Position in the image of fill-pattern for fill-pattern-fit other than repeat
+// without bounds. bounds and natural_size are in tile units, the result is 0..1
+// across the image (repeat wraps it later). fit: 1 repeat, 2 fill, 3 contain,
+// 4 cover, 5 none, 6 scale-down, 7 scale-up.
+vec2 get_fit_pattern_pos(const vec4 bounds, const vec2 natural_size, const float fit,
+                         const vec2 anchor, const vec2 pos) {
+    const vec2 size = max(bounds.zw - bounds.xy, vec2(1e-3));
+    const vec2 ratio = size / natural_size;
+    const float contain = min(ratio.x, ratio.y);
+    const float cover = max(ratio.x, ratio.y);
+    vec2 image = natural_size;
+    if (fit < 2.5) {
+        image = fit < 1.5 ? natural_size : size;
+    } else if (fit < 3.5) {
+        image = natural_size * contain;
+    } else if (fit < 4.5) {
+        image = natural_size * cover;
+    } else if (fit < 6.5) {
+        image = natural_size * (fit < 5.5 ? 1.0 : min(1.0, contain));
+    } else {
+        image = natural_size * max(1.0, cover);
+    }
+    const vec2 origin = bounds.xy + (size - image) * anchor;
+    return (pos - origin) / image;
+}
+
 vec2 unpack_int(int value) {
     const int low  = (value << 16) >> 16;
     const int high = value >> 16;
@@ -165,6 +191,25 @@ layout(set = GLOBAL_SET_INDEX, binding = 0) uniform GlobalPaintParamsUBO {
     float map_zoom;
     float pad1;
 } paintParams;
+
+// Image coordinate of a fill pattern for fill-pattern-fit. Repeat wraps; one
+// image per polygon stays half a pixel inside the image, so that filtering does
+// not blend in the opposite edge of the image.
+vec2 get_fit_image_coord(const vec2 pos, const float fit, const vec2 image_pixels) {
+    if (fit < 1.5) {
+        return mod(pos, 1.0);
+    }
+    const vec2 half_pixel = 0.5 / max(image_pixels, vec2(1.0));
+    return clamp(pos, half_pixel, 1.0 - half_pixel);
+}
+
+// 0 outside the image when one image fills the polygon (contain, none, scale-down).
+float get_fit_image_alpha(const vec2 pos, const float fit) {
+    if (fit < 1.5) {
+        return 1.0;
+    }
+    return step(0.0, pos.x) * step(0.0, pos.y) * step(pos.x, 1.0) * step(pos.y, 1.0);
+}
 
 // using lod bias variant for sampling as a workaround for Adreno 600 series
 #define texture(sampler, uv)    texture(sampler, uv, 0.0)

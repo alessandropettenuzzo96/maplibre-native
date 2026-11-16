@@ -22,6 +22,44 @@ namespace mln {
 using namespace style;
 using namespace shaders;
 
+namespace {
+
+/// fill-pattern-fit for the shaders: 0 is repeat without fill-pattern-bounds (as before
+/// fit and bounds existed), then repeat, fill, contain, cover, none, scale-down, scale-up.
+float fillPatternFit(const FillLayerProperties& props) {
+    if (props.layerImpl().paint.get<FillPatternBounds>().value.isUndefined()) {
+        return 0.0f;
+    }
+    return 1.0f + static_cast<float>(props.evaluated.get<FillPatternFit>());
+}
+
+/// fill-pattern-anchor as fractions of the bounds, 0 at the top left.
+std::array<float, 2> fillPatternAnchor(const SymbolAnchorType anchor) {
+    switch (anchor) {
+        case SymbolAnchorType::Left:
+            return {0.0f, 0.5f};
+        case SymbolAnchorType::Right:
+            return {1.0f, 0.5f};
+        case SymbolAnchorType::Top:
+            return {0.5f, 0.0f};
+        case SymbolAnchorType::Bottom:
+            return {0.5f, 1.0f};
+        case SymbolAnchorType::TopLeft:
+            return {0.0f, 0.0f};
+        case SymbolAnchorType::TopRight:
+            return {1.0f, 0.0f};
+        case SymbolAnchorType::BottomLeft:
+            return {0.0f, 1.0f};
+        case SymbolAnchorType::BottomRight:
+            return {1.0f, 1.0f};
+        case SymbolAnchorType::Center:
+        default:
+            return {0.5f, 0.5f};
+    }
+}
+
+} // namespace
+
 void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) {
     if (layerGroup.empty()) {
         return;
@@ -56,6 +94,8 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
     const auto anchor = evaluated.get<FillTranslateAnchor>();
     const auto zoom = static_cast<float>(parameters.state.getZoom());
     const auto intZoom = parameters.state.getIntegerZoom();
+    const auto patternFit = fillPatternFit(props);
+    const auto patternAnchor = fillPatternAnchor(evaluated.get<FillPatternAnchor>());
 
 #if MLN_UBO_CONSOLIDATION
     int i = 0;
@@ -163,9 +203,8 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     .pattern_to_t = std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
                     .opacity_t = std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom)),
                     .color_t = std::get<0>(binders->get<FillColor>()->interpolationFactor(zoom)),
-                    .pad1 = 0,
-                    .pad2 = 0,
-                    .pad3 = 0
+                    .fit = patternFit,
+                    .anchor = patternAnchor
                 };
 
 #if MLN_UBO_CONSOLIDATION
@@ -203,9 +242,8 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     .pattern_to_t = std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
                     .opacity_t = std::get<0>(binders->get<FillOpacity>()->interpolationFactor(zoom)),
                     .color_t = std::get<0>(binders->get<FillColor>()->interpolationFactor(zoom)),
-                    .pad1 = 0,
-                    .pad2 = 0,
-                    .pad3 = 0
+                    .fit = patternFit,
+                    .anchor = patternAnchor
                 };
 
 #if MLN_UBO_CONSOLIDATION

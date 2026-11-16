@@ -62,6 +62,8 @@ MBGL_DEFINE_ATTRIBUTE(float, 1, halo_blur);
 MBGL_DEFINE_ATTRIBUTE(float, 1, weight);
 MBGL_DEFINE_ATTRIBUTE(uint16_t, 4, pattern_to);
 MBGL_DEFINE_ATTRIBUTE(uint16_t, 4, pattern_from);
+// fill-pattern-bounds in tile units: min x, min y, max x, max y.
+MBGL_DEFINE_ATTRIBUTE(float, 4, pattern_bounds);
 
 } // namespace attributes
 

@@ -41,6 +41,7 @@ namespace {
 constexpr auto FillShaderName = "FillShader";
 constexpr auto FillOutlineShaderName = "FillOutlineShader";
 constexpr auto FillPatternShaderName = "FillPatternShader";
+constexpr std::string_view PatternBoundsAttributeName = "a_pattern_bounds";
 constexpr auto FillOutlinePatternShaderName = "FillOutlinePatternShader";
 #if MLN_TRIANGULATE_FILL_OUTLINES
 constexpr auto FillOutlineTriangulatedShaderName = "FillOutlineTriangulatedShader";
@@ -348,6 +349,21 @@ void RenderFillLayer::update(gfx::ShaderRegistry& shaders,
                                    /*vertexOffset=*/0,
                                    sizeof(FillLayoutVertex),
                                    gfx::AttributeDataType::Short2);
+        }
+
+        // fill-pattern-bounds, in tile units, when this layer sets it; otherwise the shaders
+        // take the variant without the attribute.
+        if (const auto bounds = bucket.patternBounds.find(getID()); bounds == bucket.patternBounds.end()) {
+            propertiesAsUniforms.first.emplace(PatternBoundsAttributeName);
+            propertiesAsUniforms.second.emplace(idFillPatternBoundsVertexAttribute);
+        } else {
+            if (const auto& attr = vertexAttrs->set(idFillPatternBoundsVertexAttribute)) {
+                attr->setSharedRawData(bounds->second,
+                                       offsetof(FillBucket::PatternBoundsVertex, a1),
+                                       /*vertexOffset=*/0,
+                                       sizeof(FillBucket::PatternBoundsVertex),
+                                       gfx::AttributeDataType::Float4);
+            }
         }
 
 #if MLN_TRIANGULATE_FILL_OUTLINES

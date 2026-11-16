@@ -222,6 +222,90 @@ TransitionOptions FillLayer::getFillPatternTransition() const {
     return impl().paint.template get<FillPattern>().options;
 }
 
+PropertyValue<SymbolAnchorType> FillLayer::getDefaultFillPatternAnchor() {
+    return {SymbolAnchorType::Center};
+}
+
+const PropertyValue<SymbolAnchorType>& FillLayer::getFillPatternAnchor() const {
+    return impl().paint.template get<FillPatternAnchor>().value;
+}
+
+void FillLayer::setFillPatternAnchor(const PropertyValue<SymbolAnchorType>& value) {
+    if (value == getFillPatternAnchor())
+        return;
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillPatternAnchor>().value = value;
+    baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
+}
+
+void FillLayer::setFillPatternAnchorTransition(const TransitionOptions& options) {
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillPatternAnchor>().options = options;
+    baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
+}
+
+TransitionOptions FillLayer::getFillPatternAnchorTransition() const {
+    return impl().paint.template get<FillPatternAnchor>().options;
+}
+
+PropertyValue<std::array<float, 4>> FillLayer::getDefaultFillPatternBounds() {
+    return {{{0.f, 0.f, 0.f, 0.f}}};
+}
+
+const PropertyValue<std::array<float, 4>>& FillLayer::getFillPatternBounds() const {
+    return impl().paint.template get<FillPatternBounds>().value;
+}
+
+void FillLayer::setFillPatternBounds(const PropertyValue<std::array<float, 4>>& value) {
+    if (value == getFillPatternBounds())
+        return;
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillPatternBounds>().value = value;
+    baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
+}
+
+void FillLayer::setFillPatternBoundsTransition(const TransitionOptions& options) {
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillPatternBounds>().options = options;
+    baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
+}
+
+TransitionOptions FillLayer::getFillPatternBoundsTransition() const {
+    return impl().paint.template get<FillPatternBounds>().options;
+}
+
+PropertyValue<FillPatternFitType> FillLayer::getDefaultFillPatternFit() {
+    return {FillPatternFitType::Repeat};
+}
+
+const PropertyValue<FillPatternFitType>& FillLayer::getFillPatternFit() const {
+    return impl().paint.template get<FillPatternFit>().value;
+}
+
+void FillLayer::setFillPatternFit(const PropertyValue<FillPatternFitType>& value) {
+    if (value == getFillPatternFit())
+        return;
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillPatternFit>().value = value;
+    baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
+}
+
+void FillLayer::setFillPatternFitTransition(const TransitionOptions& options) {
+    auto impl_ = mutableImpl();
+    impl_->paint.template get<FillPatternFit>().options = options;
+    baseImpl = std::move(impl_);
+    observer->onLayerChanged(*this);
+}
+
+TransitionOptions FillLayer::getFillPatternFitTransition() const {
+    return impl().paint.template get<FillPatternFit>().options;
+}
+
 PropertyValue<std::array<float, 2>> FillLayer::getDefaultFillTranslate() {
     return {{{0.f, 0.f}}};
 }
@@ -282,7 +366,7 @@ using namespace conversion;
 
 namespace {
 
-constexpr uint8_t kPaintPropertyCount = 14u;
+constexpr uint8_t kPaintPropertyCount = 20u;
 
 enum class Property : uint8_t {
     FillAntialias,
@@ -290,6 +374,9 @@ enum class Property : uint8_t {
     FillOpacity,
     FillOutlineColor,
     FillPattern,
+    FillPatternAnchor,
+    FillPatternBounds,
+    FillPatternFit,
     FillTranslate,
     FillTranslateAnchor,
     FillAntialiasTransition,
@@ -297,6 +384,9 @@ enum class Property : uint8_t {
     FillOpacityTransition,
     FillOutlineColorTransition,
     FillPatternTransition,
+    FillPatternAnchorTransition,
+    FillPatternBoundsTransition,
+    FillPatternFitTransition,
     FillTranslateTransition,
     FillTranslateAnchorTransition,
     FillSortKey = kPaintPropertyCount,
@@ -313,6 +403,9 @@ constexpr const auto layerProperties = mapbox::eternal::hash_map<mapbox::eternal
      {"fill-opacity", toUint8(Property::FillOpacity)},
      {"fill-outline-color", toUint8(Property::FillOutlineColor)},
      {"fill-pattern", toUint8(Property::FillPattern)},
+     {"fill-pattern-anchor", toUint8(Property::FillPatternAnchor)},
+     {"fill-pattern-bounds", toUint8(Property::FillPatternBounds)},
+     {"fill-pattern-fit", toUint8(Property::FillPatternFit)},
      {"fill-translate", toUint8(Property::FillTranslate)},
      {"fill-translate-anchor", toUint8(Property::FillTranslateAnchor)},
      {"fill-antialias-transition", toUint8(Property::FillAntialiasTransition)},
@@ -320,6 +413,9 @@ constexpr const auto layerProperties = mapbox::eternal::hash_map<mapbox::eternal
      {"fill-opacity-transition", toUint8(Property::FillOpacityTransition)},
      {"fill-outline-color-transition", toUint8(Property::FillOutlineColorTransition)},
      {"fill-pattern-transition", toUint8(Property::FillPatternTransition)},
+     {"fill-pattern-anchor-transition", toUint8(Property::FillPatternAnchorTransition)},
+     {"fill-pattern-bounds-transition", toUint8(Property::FillPatternBoundsTransition)},
+     {"fill-pattern-fit-transition", toUint8(Property::FillPatternFitTransition)},
      {"fill-translate-transition", toUint8(Property::FillTranslateTransition)},
      {"fill-translate-anchor-transition", toUint8(Property::FillTranslateAnchorTransition)},
      {"fill-sort-key", toUint8(Property::FillSortKey)}});
@@ -336,6 +432,12 @@ StyleProperty getLayerProperty(const FillLayer& layer, Property property) {
             return makeStyleProperty(layer.getFillOutlineColor());
         case Property::FillPattern:
             return makeStyleProperty(layer.getFillPattern());
+        case Property::FillPatternAnchor:
+            return makeStyleProperty(layer.getFillPatternAnchor());
+        case Property::FillPatternBounds:
+            return makeStyleProperty(layer.getFillPatternBounds());
+        case Property::FillPatternFit:
+            return makeStyleProperty(layer.getFillPatternFit());
         case Property::FillTranslate:
             return makeStyleProperty(layer.getFillTranslate());
         case Property::FillTranslateAnchor:
@@ -350,6 +452,12 @@ StyleProperty getLayerProperty(const FillLayer& layer, Property property) {
             return makeStyleProperty(layer.getFillOutlineColorTransition());
         case Property::FillPatternTransition:
             return makeStyleProperty(layer.getFillPatternTransition());
+        case Property::FillPatternAnchorTransition:
+            return makeStyleProperty(layer.getFillPatternAnchorTransition());
+        case Property::FillPatternBoundsTransition:
+            return makeStyleProperty(layer.getFillPatternBoundsTransition());
+        case Property::FillPatternFitTransition:
+            return makeStyleProperty(layer.getFillPatternFitTransition());
         case Property::FillTranslateTransition:
             return makeStyleProperty(layer.getFillTranslateTransition());
         case Property::FillTranslateAnchorTransition:
@@ -441,6 +549,36 @@ std::optional<Error> FillLayer::setPropertyInternal(const std::string& name, con
         setFillPattern(*typedValue);
         return std::nullopt;
     }
+    if (property == Property::FillPatternAnchor) {
+        Error error;
+        const auto& typedValue = convert<PropertyValue<SymbolAnchorType>>(value, error, false, false);
+        if (!typedValue) {
+            return error;
+        }
+
+        setFillPatternAnchor(*typedValue);
+        return std::nullopt;
+    }
+    if (property == Property::FillPatternBounds) {
+        Error error;
+        const auto& typedValue = convert<PropertyValue<std::array<float, 4>>>(value, error, true, false);
+        if (!typedValue) {
+            return error;
+        }
+
+        setFillPatternBounds(*typedValue);
+        return std::nullopt;
+    }
+    if (property == Property::FillPatternFit) {
+        Error error;
+        const auto& typedValue = convert<PropertyValue<FillPatternFitType>>(value, error, false, false);
+        if (!typedValue) {
+            return error;
+        }
+
+        setFillPatternFit(*typedValue);
+        return std::nullopt;
+    }
     if (property == Property::FillTranslate) {
         Error error;
         const auto& typedValue = convert<PropertyValue<std::array<float, 2>>>(value, error, false, false);
@@ -490,6 +628,21 @@ std::optional<Error> FillLayer::setPropertyInternal(const std::string& name, con
 
     if (property == Property::FillPatternTransition) {
         setFillPatternTransition(*transition);
+        return std::nullopt;
+    }
+
+    if (property == Property::FillPatternAnchorTransition) {
+        setFillPatternAnchorTransition(*transition);
+        return std::nullopt;
+    }
+
+    if (property == Property::FillPatternBoundsTransition) {
+        setFillPatternBoundsTransition(*transition);
+        return std::nullopt;
+    }
+
+    if (property == Property::FillPatternFitTransition) {
+        setFillPatternFitTransition(*transition);
         return std::nullopt;
     }
 

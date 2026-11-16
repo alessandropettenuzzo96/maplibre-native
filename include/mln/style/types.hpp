@@ -62,6 +62,17 @@ enum class TranslateAnchorType : bool {
     Viewport
 };
 
+/// How the image of `fill-pattern` fills each polygon.
+enum class FillPatternFitType : uint8_t {
+    Repeat,
+    Fill,
+    Contain,
+    Cover,
+    None,
+    ScaleDown,
+    ScaleUp
+};
+
 enum class RotateAnchorType : bool {
     Map,
     Viewport,

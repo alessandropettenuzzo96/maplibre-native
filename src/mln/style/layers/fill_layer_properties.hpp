@@ -41,6 +41,18 @@ struct FillPattern : CrossFadedDataDrivenPaintProperty<expression::Image, attrib
     static expression::Image defaultValue() { return {}; }
 };
 
+struct FillPatternAnchor : PaintProperty<SymbolAnchorType> {
+    static SymbolAnchorType defaultValue() { return SymbolAnchorType::Center; }
+};
+
+struct FillPatternBounds : FeatureEvaluatedPaintProperty<std::array<float, 4>> {
+    static std::array<float, 4> defaultValue() { return {{0.f, 0.f, 0.f, 0.f}}; }
+};
+
+struct FillPatternFit : PaintProperty<FillPatternFitType> {
+    static FillPatternFitType defaultValue() { return FillPatternFitType::Repeat; }
+};
+
 struct FillTranslate : PaintProperty<std::array<float, 2>> {
     static std::array<float, 2> defaultValue() { return {{0.f, 0.f}}; }
 };
@@ -59,6 +71,9 @@ class FillPaintProperties : public Properties<
     FillOpacity,
     FillOutlineColor,
     FillPattern,
+    FillPatternAnchor,
+    FillPatternBounds,
+    FillPatternFit,
     FillTranslate,
     FillTranslateAnchor
 > {};

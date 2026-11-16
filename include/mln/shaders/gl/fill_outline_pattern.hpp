@@ -30,9 +30,10 @@ layout (std140) uniform FillOutlinePatternDrawableUBO {
     highp float u_pattern_to_t;
     highp float u_opacity_t;
     highp float u_color_t;
-    lowp float drawable_pad1;
-    lowp float drawable_pad2;
-    lowp float drawable_pad3;
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    highp float u_fit;
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    highp vec2 u_anchor;
 };
 
 layout (std140) uniform FillOutlinePatternTilePropsUBO {
@@ -53,25 +54,27 @@ layout (std140) uniform FillEvaluatedPropsUBO {
 };
 
 layout (location = 0) in vec2 a_pos;
+layout (location = 1) in highp vec4 a_pattern_bounds;
 
 out vec2 v_pos_a;
 out vec2 v_pos_b;
 out vec2 v_pos;
+out float v_fit;
 
 #ifndef HAS_UNIFORM_u_color
-layout (location = 1) in highp vec4 a_color;
+layout (location = 2) in highp vec4 a_color;
 out highp vec4 color;
 #endif
 #ifndef HAS_UNIFORM_u_opacity
-layout (location = 2) in lowp vec2 a_opacity;
+layout (location = 3) in lowp vec2 a_opacity;
 out lowp float opacity;
 #endif
 #ifndef HAS_UNIFORM_u_pattern_from
-layout (location = 3) in lowp vec4 a_pattern_from;
+layout (location = 4) in lowp vec4 a_pattern_from;
 out lowp vec4 pattern_from;
 #endif
 #ifndef HAS_UNIFORM_u_pattern_to
-layout (location = 4) in lowp vec4 a_pattern_to;
+layout (location = 5) in lowp vec4 a_pattern_to;
 out lowp vec4 pattern_to;
 #endif
 
@@ -112,8 +115,14 @@ mediump vec4 pattern_to = u_pattern_to;
     vec2 display_size_a = vec2((pattern_br_a.x - pattern_tl_a.x) / pixelRatio, (pattern_br_a.y - pattern_tl_a.y) / pixelRatio);
     vec2 display_size_b = vec2((pattern_br_b.x - pattern_tl_b.x) / pixelRatio, (pattern_br_b.y - pattern_tl_b.y) / pixelRatio);
 
-    v_pos_a = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, fromScale * display_size_a, tileRatio, a_pos);
-    v_pos_b = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, toScale * display_size_b, tileRatio, a_pos);
+    v_fit = u_fit;
+    if (u_fit < 0.5) {
+        v_pos_a = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, fromScale * display_size_a, tileRatio, a_pos);
+        v_pos_b = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, toScale * display_size_b, tileRatio, a_pos);
+    } else {
+        v_pos_a = get_fit_pattern_pos(a_pattern_bounds, fromScale * display_size_a / tileRatio, u_fit, u_anchor, a_pos);
+        v_pos_b = get_fit_pattern_pos(a_pattern_bounds, toScale * display_size_b / tileRatio, u_fit, u_anchor, a_pos);
+    }
 
     v_pos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * u_world_size;
 }
@@ -140,6 +149,7 @@ uniform sampler2D u_image;
 in vec2 v_pos_a;
 in vec2 v_pos_b;
 in vec2 v_pos;
+in float v_fit;
 
 #ifndef HAS_UNIFORM_u_color
 in highp vec4 color;
@@ -173,13 +183,13 @@ mediump vec4 pattern_to = u_pattern_to;
     vec2 pattern_tl_b = pattern_to.xy;
     vec2 pattern_br_b = pattern_to.zw;
 
-    vec2 imagecoord = mod(v_pos_a, 1.0);
+    vec2 imagecoord = get_fit_image_coord(v_pos_a, v_fit, pattern_br_a - pattern_tl_a);
     vec2 pos = mix(pattern_tl_a / u_texsize, pattern_br_a / u_texsize, imagecoord);
-    vec4 color1 = texture(u_image, pos);
+    vec4 color1 = texture(u_image, pos) * get_fit_image_alpha(v_pos_a, v_fit);
 
-    vec2 imagecoord_b = mod(v_pos_b, 1.0);
+    vec2 imagecoord_b = get_fit_image_coord(v_pos_b, v_fit, pattern_br_b - pattern_tl_b);
     vec2 pos2 = mix(pattern_tl_b / u_texsize, pattern_br_b / u_texsize, imagecoord_b);
-    vec4 color2 = texture(u_image, pos2);
+    vec4 color2 = texture(u_image, pos2) * get_fit_image_alpha(v_pos_b, v_fit);
 
     // find distance to outline for alpha interpolation
 

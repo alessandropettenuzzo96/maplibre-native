@@ -83,6 +83,51 @@ fn get_pattern_pos(pixel_coord_upper: vec2<f32>, pixel_coord_lower: vec2<f32>,
     let offset = gl_mod(offset_b, pattern_size);
     return (tile_units_to_pixels * pos + offset) / pattern_size;
 }
+
+// Position in the image of fill-pattern for fill-pattern-fit other than repeat
+// without bounds. bounds and natural_size are in tile units, the result is 0..1
+// across the image (repeat wraps it later). fit: 1 repeat, 2 fill, 3 contain,
+// 4 cover, 5 none, 6 scale-down, 7 scale-up.
+fn get_fit_pattern_pos(bounds: vec4<f32>, natural_size: vec2<f32>, fit: f32,
+                       anchor: vec2<f32>, pos: vec2<f32>) -> vec2<f32> {
+    let size = max(bounds.zw - bounds.xy, vec2<f32>(1e-3));
+    let ratio = size / natural_size;
+    let contain = min(ratio.x, ratio.y);
+    let cover = max(ratio.x, ratio.y);
+    var image = natural_size;
+    if (fit < 2.5) {
+        image = select(size, natural_size, fit < 1.5);
+    } else if (fit < 3.5) {
+        image = natural_size * contain;
+    } else if (fit < 4.5) {
+        image = natural_size * cover;
+    } else if (fit < 6.5) {
+        image = natural_size * select(min(1.0, contain), 1.0, fit < 5.5);
+    } else {
+        image = natural_size * max(1.0, cover);
+    }
+    let origin = bounds.xy + (size - image) * anchor;
+    return (pos - origin) / image;
+}
+
+// Image coordinate of a fill pattern for fill-pattern-fit. Repeat wraps; one
+// image per polygon stays half a pixel inside the image, so that filtering does
+// not blend in the opposite edge of the image.
+fn get_fit_image_coord(pos: vec2<f32>, fit: f32, image_pixels: vec2<f32>) -> vec2<f32> {
+    if (fit < 1.5) {
+        return gl_mod(pos, vec2<f32>(1.0));
+    }
+    let half_pixel = vec2<f32>(0.5) / max(image_pixels, vec2<f32>(1.0));
+    return clamp(pos, half_pixel, vec2<f32>(1.0) - half_pixel);
+}
+
+// 0 outside the image when one image fills the polygon (contain, none, scale-down).
+fn get_fit_image_alpha(pos: vec2<f32>, fit: f32) -> f32 {
+    if (fit < 1.5) {
+        return 1.0;
+    }
+    return step(0.0, pos.x) * step(0.0, pos.y) * step(pos.x, 1.0) * step(pos.y, 1.0);
+}
 )";
 };
 

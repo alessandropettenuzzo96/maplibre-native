@@ -239,7 +239,7 @@ template <>
 struct ShaderSource<BuiltIn::FillPatternShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "FillPatternShader";
 
-    static const std::array<AttributeInfo, 5> attributes;
+    static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
@@ -264,6 +264,10 @@ layout(location = 3) in mediump uvec4 in_pattern_to;
 layout(location = 4) in vec2 in_opacity;
 #endif
 
+#if !defined(HAS_UNIFORM_u_pattern_bounds)
+layout(location = 5) in vec4 in_pattern_bounds;
+#endif
+
 layout(push_constant) uniform Constants {
     int ubo_index;
 } constant;
@@ -278,9 +282,10 @@ struct FillPatternDrawableUBO {
     float pattern_to_t;
     float opacity_t;
     float color_t;
-    float pad1;
-    float pad2;
-    float pad3;
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    float fit;
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    vec2 anchor;
 };
 
 layout(std140, set = LAYER_SET_INDEX, binding = idFillDrawableUBO) readonly buffer FillPatternDrawableUBOVector {
@@ -327,6 +332,8 @@ layout(location = 4) out mediump vec4 frag_pattern_to;
 layout(location = 5) out lowp float frag_opacity;
 #endif
 
+layout(location = 6) out float frag_fit;
+
 void main() {
     const FillPatternDrawableUBO drawable = drawableVector.drawable_ubo[constant.ubo_index];
     const FillPatternTilePropsUBO tileProps = tilePropsVector.tile_props_ubo[constant.ubo_index];
@@ -364,8 +371,20 @@ void main() {
     const vec2 display_size_a = vec2((pattern_br_a.x - pattern_tl_a.x) / pixelRatio, (pattern_br_a.y - pattern_tl_a.y) / pixelRatio);
     const vec2 display_size_b = vec2((pattern_br_b.x - pattern_tl_b.x) / pixelRatio, (pattern_br_b.y - pattern_tl_b.y) / pixelRatio);
 
-    frag_pos_a = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, in_position),
-    frag_pos_b = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, in_position),
+#if defined(HAS_UNIFORM_u_pattern_bounds)
+    frag_fit = 0.0;
+#else
+    frag_fit = drawable.fit;
+#endif
+    if (frag_fit < 0.5) {
+        frag_pos_a = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, in_position);
+        frag_pos_b = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, in_position);
+    } else {
+#if !defined(HAS_UNIFORM_u_pattern_bounds)
+        frag_pos_a = get_fit_pattern_pos(in_pattern_bounds, fromScale * display_size_a / tileZoomRatio, frag_fit, drawable.anchor, in_position);
+        frag_pos_b = get_fit_pattern_pos(in_pattern_bounds, toScale * display_size_b / tileZoomRatio, frag_fit, drawable.anchor, in_position);
+#endif
+    }
 
     gl_Position = drawable.matrix * vec4(in_position, 0.0, 1.0);
     applySurfaceTransform();
@@ -392,6 +411,8 @@ layout(location = 4) in vec4 frag_pattern_to;
 #if !defined(HAS_UNIFORM_u_opacity)
 layout(location = 5) in lowp float frag_opacity;
 #endif
+
+layout(location = 6) in float frag_fit;
 
 layout(location = 0) out vec4 out_color;
 
@@ -460,13 +481,13 @@ void main() {
     const vec2 pattern_tl_b = pattern_to.xy;
     const vec2 pattern_br_b = pattern_to.zw;
 
-    const vec2 imagecoord = mod(frag_pos_a, 1.0);
+    const vec2 imagecoord = get_fit_image_coord(frag_pos_a, frag_fit, pattern_br_a - pattern_tl_a);
     const vec2 pos = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord);
-    const vec4 color1 = texture(image0_sampler, pos);
+    const vec4 color1 = texture(image0_sampler, pos) * get_fit_image_alpha(frag_pos_a, frag_fit);
 
-    const vec2 imagecoord_b = mod(frag_pos_b, 1.0);
+    const vec2 imagecoord_b = get_fit_image_coord(frag_pos_b, frag_fit, pattern_br_b - pattern_tl_b);
     const vec2 pos2 = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
-    const vec4 color2 = texture(image0_sampler, pos2);
+    const vec4 color2 = texture(image0_sampler, pos2) * get_fit_image_alpha(frag_pos_b, frag_fit);
 
     if (tileProps.sdf > 0.5) {
         const float sdf_edge = (256.0 - 64.0) / 256.0;
@@ -486,7 +507,7 @@ template <>
 struct ShaderSource<BuiltIn::FillOutlinePatternShader, gfx::Backend::Type::Vulkan> {
     static constexpr const char* name = "FillOutlinePatternShader";
 
-    static const std::array<AttributeInfo, 5> attributes;
+    static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
@@ -511,6 +532,10 @@ layout(location = 3) in mediump uvec4 in_pattern_to;
 layout(location = 4) in vec2 in_opacity;
 #endif
 
+#if !defined(HAS_UNIFORM_u_pattern_bounds)
+layout(location = 5) in vec4 in_pattern_bounds;
+#endif
+
 layout(push_constant) uniform Constants {
     int ubo_index;
 } constant;
@@ -525,9 +550,10 @@ struct FillOutlinePatternDrawableUBO {
     float pattern_to_t;
     float opacity_t;
     float color_t;
-    float pad1;
-    float pad2;
-    float pad3;
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    float fit;
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    vec2 anchor;
 };
 
 layout(std140, set = LAYER_SET_INDEX, binding = idFillDrawableUBO) readonly buffer FillOutlinePatternDrawableUBOVector {
@@ -575,6 +601,8 @@ layout(location = 5) out mediump vec4 frag_pattern_to;
 layout(location = 6) out lowp float frag_opacity;
 #endif
 
+layout(location = 7) out float frag_fit;
+
 void main() {
     const FillOutlinePatternDrawableUBO drawable = drawableVector.drawable_ubo[constant.ubo_index];
     const FillOutlinePatternTilePropsUBO tileProps = tilePropsVector.tile_props_ubo[constant.ubo_index];
@@ -616,8 +644,20 @@ void main() {
     gl_Position = drawable.matrix * vec4(in_position, 0.0, 1.0);
     applySurfaceTransform();
 
-    frag_pos_a = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, position2),
-    frag_pos_b = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, position2),
+#if defined(HAS_UNIFORM_u_pattern_bounds)
+    frag_fit = 0.0;
+#else
+    frag_fit = drawable.fit;
+#endif
+    if (frag_fit < 0.5) {
+        frag_pos_a = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, position2);
+        frag_pos_b = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, position2);
+    } else {
+#if !defined(HAS_UNIFORM_u_pattern_bounds)
+        frag_pos_a = get_fit_pattern_pos(in_pattern_bounds, fromScale * display_size_a / tileZoomRatio, frag_fit, drawable.anchor, position2);
+        frag_pos_b = get_fit_pattern_pos(in_pattern_bounds, toScale * display_size_b / tileZoomRatio, frag_fit, drawable.anchor, position2);
+#endif
+    }
     frag_pos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * paintParams.world_size;
 }
 )";
@@ -643,6 +683,8 @@ layout(location = 5) in vec4 frag_pattern_to;
 #if !defined(HAS_UNIFORM_u_opacity)
 layout(location = 6) in lowp float frag_opacity;
 #endif
+
+layout(location = 7) in float frag_fit;
 
 layout(location = 0) out vec4 out_color;
 
@@ -711,13 +753,13 @@ void main() {
     const vec2 pattern_tl_b = pattern_to.xy;
     const vec2 pattern_br_b = pattern_to.zw;
 
-    const vec2 imagecoord = mod(frag_pos_a, 1.0);
+    const vec2 imagecoord = get_fit_image_coord(frag_pos_a, frag_fit, pattern_br_a - pattern_tl_a);
     const vec2 pos = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord);
-    const vec4 color1 = texture(image0_sampler, pos);
+    const vec4 color1 = texture(image0_sampler, pos) * get_fit_image_alpha(frag_pos_a, frag_fit);
 
-    const vec2 imagecoord_b = mod(frag_pos_b, 1.0);
+    const vec2 imagecoord_b = get_fit_image_coord(frag_pos_b, frag_fit, pattern_br_b - pattern_tl_b);
     const vec2 pos2 = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
-    const vec4 color2 = texture(image0_sampler, pos2);
+    const vec4 color2 = texture(image0_sampler, pos2) * get_fit_image_alpha(frag_pos_b, frag_fit);
 
     const float dist = length(frag_pos - gl_FragCoord.xy);
     const float alpha = 1.0 - smoothstep(0.0, 1.0, dist);

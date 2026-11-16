@@ -26,6 +26,17 @@ MBGL_DEFINE_ENUM(TranslateAnchorType,
                      {TranslateAnchorType::Viewport, "viewport"},
                  });
 
+MBGL_DEFINE_ENUM(FillPatternFitType,
+                 {
+                     {FillPatternFitType::Repeat, "repeat"},
+                     {FillPatternFitType::Fill, "fill"},
+                     {FillPatternFitType::Contain, "contain"},
+                     {FillPatternFitType::Cover, "cover"},
+                     {FillPatternFitType::None, "none"},
+                     {FillPatternFitType::ScaleDown, "scale-down"},
+                     {FillPatternFitType::ScaleUp, "scale-up"},
+                 });
+
 MBGL_DEFINE_ENUM(RasterResamplingType,
                  {
                      {RasterResamplingType::Linear, "linear"},

@@ -60,9 +60,10 @@ struct alignas(16) FillPatternDrawableUBO {
     /* 88 */ float pattern_to_t;
     /* 92 */ float opacity_t;
     /* 96 */ float color_t;
-    /*100 */ float pad1;
-    /*104 */ float pad2;
-    /*108 */ float pad3;
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    /*100 */ float fit;
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    /*104 */ float2 anchor;
     /*112 */
 };
 static_assert(sizeof(FillPatternDrawableUBO) == 7 * 16, "wrong size");
@@ -91,9 +92,10 @@ struct alignas(16) FillOutlinePatternDrawableUBO {
     /* 88 */ float pattern_to_t;
     /* 92 */ float opacity_t;
     /* 96 */ float color_t;
-    /*100 */ float pad1;
-    /*104 */ float pad2;
-    /*108 */ float pad3;
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    /*100 */ float fit;
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    /*104 */ float2 anchor;
     /*112 */
 };
 static_assert(sizeof(FillOutlinePatternDrawableUBO) == 7 * 16, "wrong size");
@@ -308,7 +310,7 @@ struct ShaderSource<BuiltIn::FillPatternShader, gfx::Backend::Type::Metal> {
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
 
-    static const std::array<AttributeInfo, 5> attributes;
+    static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
@@ -330,12 +332,16 @@ struct VertexStage {
 #if !defined(HAS_UNIFORM_u_opacity)
     float2 opacity [[attribute(4)]];
 #endif
+#if !defined(HAS_UNIFORM_u_pattern_bounds)
+    float4 pattern_bounds [[attribute(5)]];
+#endif
 };
 
 struct FragmentStage {
     float4 position [[position, invariant]];
     float2 v_pos_a;
     float2 v_pos_b;
+    float fit;
 
 #if !defined(HAS_UNIFORM_u_color)
     half4 color;
@@ -387,10 +393,25 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     const float2 display_size_b = float2((pattern_br_b.x - pattern_tl_b.x) / pixelRatio, (pattern_br_b.y - pattern_tl_b.y) / pixelRatio);
     const float2 postion = float2(vertx.position);
 
+#if defined(HAS_UNIFORM_u_pattern_bounds)
+    const float fit = 0.0;
+    const float4 pattern_bounds = float4(0.0);
+#else
+    const float fit = drawable.fit;
+    const float4 pattern_bounds = vertx.pattern_bounds;
+#endif
+    const float2 v_pos_a = fit < 0.5
+        ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, postion)
+        : get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, fit, drawable.anchor, postion);
+    const float2 v_pos_b = fit < 0.5
+        ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, postion)
+        : get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, fit, drawable.anchor, postion);
+
     return {
         .position       = drawable.matrix * float4(postion, 0, 1),
-        .v_pos_a        = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, postion),
-        .v_pos_b        = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, postion),
+        .v_pos_a        = v_pos_a,
+        .v_pos_b        = v_pos_b,
+        .fit            = fit,
 #if !defined(HAS_UNIFORM_u_color)
         .color          = half4(unpack_mix_color(vertx.color, drawable.color_t)),
 #endif
@@ -447,13 +468,13 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     const float2 pattern_tl_b = pattern_to.xy;
     const float2 pattern_br_b = pattern_to.zw;
 
-    const float2 imagecoord = glMod(in.v_pos_a, 1.0);
+    const float2 imagecoord = get_fit_image_coord(in.v_pos_a, in.fit, pattern_br_a - pattern_tl_a);
     const float2 pos = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord);
-    const float4 color1 = image0.sample(image0_sampler, pos);
+    const float4 color1 = image0.sample(image0_sampler, pos) * get_fit_image_alpha(in.v_pos_a, in.fit);
 
-    const float2 imagecoord_b = glMod(in.v_pos_b, 1.0);
+    const float2 imagecoord_b = get_fit_image_coord(in.v_pos_b, in.fit, pattern_br_b - pattern_tl_b);
     const float2 pos2 = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
-    const float4 color2 = image0.sample(image0_sampler, pos2);
+    const float4 color2 = image0.sample(image0_sampler, pos2) * get_fit_image_alpha(in.v_pos_b, in.fit);
 
     if (tileProps.sdf > 0.5) {
         const float sdf_edge = (256.0 - 64.0) / 256.0;
@@ -474,7 +495,7 @@ struct ShaderSource<BuiltIn::FillOutlinePatternShader, gfx::Backend::Type::Metal
     static constexpr auto vertexMainFunction = "vertexMain";
     static constexpr auto fragmentMainFunction = "fragmentMain";
 
-    static const std::array<AttributeInfo, 5> attributes;
+    static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
@@ -496,12 +517,16 @@ struct VertexStage {
 #if !defined(HAS_UNIFORM_u_opacity)
     float2 opacity [[attribute(4)]];
 #endif
+#if !defined(HAS_UNIFORM_u_pattern_bounds)
+    float4 pattern_bounds [[attribute(5)]];
+#endif
 };
 
 struct FragmentStage {
     float4 position [[position, invariant]];
     float2 v_pos_a;
     float2 v_pos_b;
+    float fit;
     float2 v_pos;
 
 #if !defined(HAS_UNIFORM_u_color)
@@ -559,10 +584,25 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     const float2 pos2 = float2(vertx.position);
     const float4 position = drawable.matrix * float4(pos2, 0, 1);
 
+#if defined(HAS_UNIFORM_u_pattern_bounds)
+    const float fit = 0.0;
+    const float4 pattern_bounds = float4(0.0);
+#else
+    const float fit = drawable.fit;
+    const float4 pattern_bounds = vertx.pattern_bounds;
+#endif
+    const float2 v_pos_a = fit < 0.5
+        ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, pos2)
+        : get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, fit, drawable.anchor, pos2);
+    const float2 v_pos_b = fit < 0.5
+        ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, pos2)
+        : get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, fit, drawable.anchor, pos2);
+
     return {
         .position       = position,
-        .v_pos_a        = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, pos2),
-        .v_pos_b        = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, pos2),
+        .v_pos_a        = v_pos_a,
+        .v_pos_b        = v_pos_b,
+        .fit            = fit,
         // Fragment positions use a top-left origin, while NDC Y points up.
         .v_pos          = (position.xy / position.w * float2(1.0, -1.0) + 1.0) / 2.0 * paintParams.world_size,
 
@@ -622,13 +662,13 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     const float2 pattern_tl_b = pattern_to.xy;
     const float2 pattern_br_b = pattern_to.zw;
 
-    const float2 imagecoord = glMod(in.v_pos_a, 1.0);
+    const float2 imagecoord = get_fit_image_coord(in.v_pos_a, in.fit, pattern_br_a - pattern_tl_a);
     const float2 pos = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord);
-    const float4 color1 = image0.sample(image0_sampler, pos);
+    const float4 color1 = image0.sample(image0_sampler, pos) * get_fit_image_alpha(in.v_pos_a, in.fit);
 
-    const float2 imagecoord_b = glMod(in.v_pos_b, 1.0);
+    const float2 imagecoord_b = get_fit_image_coord(in.v_pos_b, in.fit, pattern_br_b - pattern_tl_b);
     const float2 pos2 = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
-    const float4 color2 = image0.sample(image0_sampler, pos2);
+    const float4 color2 = image0.sample(image0_sampler, pos2) * get_fit_image_alpha(in.v_pos_b, in.fit);
 
     // TODO: Should triangate the lines into triangles to support thick line and edge antialiased.
     const float dist = length(in.v_pos - in.position.xy);

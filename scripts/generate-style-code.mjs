@@ -90,7 +90,7 @@ function evaluatedType(property) {
   if (/-(rotation|pitch|illumination)-alignment$/.test(property.name)) {
     return 'AlignmentType';
   }
-  if (/^(text|icon)-anchor$/.test(property.name)) {
+  if (/^(text|icon|fill-pattern)-anchor$/.test(property.name)) {
     return 'SymbolAnchorType';
   }
   if (/position/.test(property.name)) {
@@ -186,6 +186,9 @@ function layoutPropertyType(property) {
  * @returns
  */
 function paintPropertyType(property, type) {
+  // Evaluated per feature by the renderer, not passed to shaders through binders.
+  if (['fill-pattern-bounds'].includes(property.name))
+      return `FeatureEvaluatedPaintProperty<${evaluatedType(property)}>`;
   switch (property['property-type']) {
     case 'data-driven':
       if (isOverridable(property))

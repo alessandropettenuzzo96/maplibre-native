@@ -20,6 +20,7 @@ uniform sampler2D u_image;
 in vec2 v_pos_a;
 in vec2 v_pos_b;
 in vec2 v_pos;
+in float v_fit;
 
 #pragma mapbox: define highp vec4 color
 #pragma mapbox: define lowp float opacity
@@ -37,13 +38,13 @@ void main() {
     vec2 pattern_tl_b = pattern_to.xy;
     vec2 pattern_br_b = pattern_to.zw;
 
-    vec2 imagecoord = mod(v_pos_a, 1.0);
+    vec2 imagecoord = get_fit_image_coord(v_pos_a, v_fit, pattern_br_a - pattern_tl_a);
     vec2 pos = mix(pattern_tl_a / u_texsize, pattern_br_a / u_texsize, imagecoord);
-    vec4 color1 = texture(u_image, pos);
+    vec4 color1 = texture(u_image, pos) * get_fit_image_alpha(v_pos_a, v_fit);
 
-    vec2 imagecoord_b = mod(v_pos_b, 1.0);
+    vec2 imagecoord_b = get_fit_image_coord(v_pos_b, v_fit, pattern_br_b - pattern_tl_b);
     vec2 pos2 = mix(pattern_tl_b / u_texsize, pattern_br_b / u_texsize, imagecoord_b);
-    vec4 color2 = texture(u_image, pos2);
+    vec4 color2 = texture(u_image, pos2) * get_fit_image_alpha(v_pos_b, v_fit);
 
     // find distance to outline for alpha interpolation
 

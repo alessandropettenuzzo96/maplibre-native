@@ -426,6 +426,9 @@ enum {
     idFillPatternFromVertexAttribute,
     idFillPatternToVertexAttribute,
 
+    // fill-pattern-bounds in tile units
+    idFillPatternBoundsVertexAttribute,
+
     fillVertexAttributeCount
 };
 

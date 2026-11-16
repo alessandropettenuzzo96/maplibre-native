@@ -87,6 +87,14 @@ public:
 
     std::map<std::string, FillBinders> paintPropertyBinders;
 
+    /// fill-pattern-bounds of each feature in tile units, one per vertex, for the layers that set it.
+    using PatternBoundsVertex = gfx::Vertex<TypeList<attributes::pattern_bounds>>;
+    using PatternBoundsVector = gfx::VertexVector<PatternBoundsVertex>;
+    std::map<std::string, std::shared_ptr<PatternBoundsVector>> patternBounds;
+
+    /// [west, south, east, north] in degrees to [min x, min y, max x, max y] in units of the tile.
+    static std::array<float, 4> boundsInTile(const std::array<float, 4>& bounds, const CanonicalTileID&);
+
 private:
     void generateBuffers(const GeometryCollection&);
     void populateBinders(const GeometryTileFeature&,
@@ -94,6 +102,11 @@ private:
                          const PatternLayerMap&,
                          std::size_t featureIndex,
                          const CanonicalTileID&);
+
+    void populatePatternBounds(const GeometryTileFeature&, std::size_t vertexOffset, const CanonicalTileID&);
+
+    std::map<std::string, PossiblyEvaluatedPropertyValue<std::array<float, 4>>> patternBoundsValues;
+    float zoom = 0;
 
     mln::unordered_map<std::string, bool> sdfPatterns;
     mln::unordered_set<std::string> mixedSDFPatternLayers;

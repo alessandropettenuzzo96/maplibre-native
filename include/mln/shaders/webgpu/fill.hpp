@@ -276,7 +276,7 @@ fn main(in: FragmentInput) -> @location(0) vec4<f32> {
 template <>
 struct ShaderSource<BuiltIn::FillPatternShader, gfx::Backend::Type::WebGPU> {
     static constexpr const char* name = "FillPatternShader";
-    static const std::array<AttributeInfo, 5> attributes;
+    static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
@@ -294,6 +294,9 @@ struct VertexInput {
 #endif
 #ifndef HAS_UNIFORM_u_opacity
     @location(8) opacity: vec2<f32>,
+#endif
+#ifndef HAS_UNIFORM_u_pattern_bounds
+    @location(9) pattern_bounds: vec4<f32>,
 #endif
 };
 
@@ -313,6 +316,7 @@ struct VertexOutput {
 #ifndef HAS_UNIFORM_u_opacity
     @location(5) opacity: f32,
 #endif
+    @location(6) fit: f32,
 };
 
 struct FillPatternDrawableUBO {
@@ -324,9 +328,10 @@ struct FillPatternDrawableUBO {
     pattern_to_t: f32,
     opacity_t: f32,
     color_t: f32,
-    pad1: f32,
-    pad2: f32,
-    pad3: f32,
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    fit: f32,
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    anchor: vec2<f32>,
 };
 
 struct FillPatternTilePropsUBO {
@@ -412,20 +417,32 @@ fn main(in: VertexInput) -> VertexOutput {
     let pos = vec2<f32>(f32(in.position.x), f32(in.position.y));
     let clip = drawable.matrix * vec4<f32>(pos, 0.0, 1.0);
     out.position = clip;
-    out.v_pos_a = get_pattern_pos(
-        drawable.pixel_coord_upper,
-        drawable.pixel_coord_lower,
-        fromScale * display_size_a,
-        tileZoomRatio,
-        pos
-    );
-    out.v_pos_b = get_pattern_pos(
-        drawable.pixel_coord_upper,
-        drawable.pixel_coord_lower,
-        toScale * display_size_b,
-        tileZoomRatio,
-        pos
-    );
+#ifdef HAS_UNIFORM_u_pattern_bounds
+    out.fit = 0.0;
+    let pattern_bounds = vec4<f32>(0.0);
+#else
+    out.fit = drawable.fit;
+    let pattern_bounds = in.pattern_bounds;
+#endif
+    if (out.fit < 0.5) {
+        out.v_pos_a = get_pattern_pos(
+            drawable.pixel_coord_upper,
+            drawable.pixel_coord_lower,
+            fromScale * display_size_a,
+            tileZoomRatio,
+            pos
+        );
+        out.v_pos_b = get_pattern_pos(
+            drawable.pixel_coord_upper,
+            drawable.pixel_coord_lower,
+            toScale * display_size_b,
+            tileZoomRatio,
+            pos
+        );
+    } else {
+        out.v_pos_a = get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, out.fit, drawable.anchor, pos);
+        out.v_pos_b = get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, out.fit, drawable.anchor, pos);
+    }
 #ifndef HAS_UNIFORM_u_color
     out.color = unpack_mix_color(in.color, drawable.color_t);
 #endif
@@ -459,6 +476,7 @@ struct FragmentInput {
 #ifndef HAS_UNIFORM_u_opacity
     @location(5) opacity: f32,
 #endif
+    @location(6) fit: f32,
 };
 
 struct FillPatternTilePropsUBO {
@@ -513,14 +531,14 @@ fn main(in: FragmentInput) -> @location(0) vec4<f32> {
     let pattern_br_b = pattern_to.zw;
 
     // Sample pattern A
-    let imagecoord_a = gl_mod(in.v_pos_a, vec2<f32>(1.0));
+    let imagecoord_a = get_fit_image_coord(in.v_pos_a, in.fit, pattern_br_a - pattern_tl_a);
     let pos_a = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord_a);
-    let color_a = textureSample(pattern_texture, texture_sampler, pos_a);
+    let color_a = textureSample(pattern_texture, texture_sampler, pos_a) * get_fit_image_alpha(in.v_pos_a, in.fit);
 
     // Sample pattern B
-    let imagecoord_b = gl_mod(in.v_pos_b, vec2<f32>(1.0));
+    let imagecoord_b = get_fit_image_coord(in.v_pos_b, in.fit, pattern_br_b - pattern_tl_b);
     let pos_b = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
-    let color_b = textureSample(pattern_texture, texture_sampler, pos_b);
+    let color_b = textureSample(pattern_texture, texture_sampler, pos_b) * get_fit_image_alpha(in.v_pos_b, in.fit);
 
     // Mix patterns and apply opacity
     let opacity =
@@ -553,7 +571,7 @@ fn main(in: FragmentInput) -> @location(0) vec4<f32> {
 template <>
 struct ShaderSource<BuiltIn::FillOutlinePatternShader, gfx::Backend::Type::WebGPU> {
     static constexpr const char* name = "FillOutlinePatternShader";
-    static const std::array<AttributeInfo, 5> attributes;
+    static const std::array<AttributeInfo, 6> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
     static const std::array<TextureInfo, 1> textures;
 
@@ -571,6 +589,9 @@ struct VertexInput {
 #endif
 #ifndef HAS_UNIFORM_u_opacity
     @location(8) opacity: vec2<f32>,
+#endif
+#ifndef HAS_UNIFORM_u_pattern_bounds
+    @location(9) pattern_bounds: vec4<f32>,
 #endif
 };
 
@@ -591,6 +612,7 @@ struct VertexOutput {
 #ifndef HAS_UNIFORM_u_opacity
     @location(6) opacity: f32,
 #endif
+    @location(7) fit: f32,
 };
 
 struct FillOutlinePatternDrawableUBO {
@@ -602,9 +624,10 @@ struct FillOutlinePatternDrawableUBO {
     pattern_to_t: f32,
     opacity_t: f32,
     color_t: f32,
-    pad1: f32,
-    pad2: f32,
-    pad3: f32,
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    fit: f32,
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    anchor: vec2<f32>,
 };
 
 struct FillOutlinePatternTilePropsUBO {
@@ -693,20 +716,32 @@ fn main(in: VertexInput) -> VertexOutput {
     let ndcXY = clip.xy * invW;
 
     out.position = clip;
-    out.v_pos_a = get_pattern_pos(
-        drawable.pixel_coord_upper,
-        drawable.pixel_coord_lower,
-        fromScale * display_size_a,
-        tileZoomRatio,
-        pos
-    );
-    out.v_pos_b = get_pattern_pos(
-        drawable.pixel_coord_upper,
-        drawable.pixel_coord_lower,
-        toScale * display_size_b,
-        tileZoomRatio,
-        pos
-    );
+#ifdef HAS_UNIFORM_u_pattern_bounds
+    out.fit = 0.0;
+    let pattern_bounds = vec4<f32>(0.0);
+#else
+    out.fit = drawable.fit;
+    let pattern_bounds = in.pattern_bounds;
+#endif
+    if (out.fit < 0.5) {
+        out.v_pos_a = get_pattern_pos(
+            drawable.pixel_coord_upper,
+            drawable.pixel_coord_lower,
+            fromScale * display_size_a,
+            tileZoomRatio,
+            pos
+        );
+        out.v_pos_b = get_pattern_pos(
+            drawable.pixel_coord_upper,
+            drawable.pixel_coord_lower,
+            toScale * display_size_b,
+            tileZoomRatio,
+            pos
+        );
+    } else {
+        out.v_pos_a = get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, out.fit, drawable.anchor, pos);
+        out.v_pos_b = get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, out.fit, drawable.anchor, pos);
+    }
     // Fragment positions use a top-left origin, while NDC Y points up.
     out.v_pos = (ndcXY * vec2<f32>(1.0, -1.0) + vec2<f32>(1.0, 1.0)) * 0.5 * paintParams.world_size;
 #ifndef HAS_UNIFORM_u_color
@@ -744,6 +779,7 @@ struct FragmentInput {
 #ifndef HAS_UNIFORM_u_opacity
     @location(6) opacity: f32,
 #endif
+    @location(7) fit: f32,
 };
 
 struct FillOutlinePatternTilePropsUBO {
@@ -798,14 +834,14 @@ fn main(in: FragmentInput) -> @location(0) vec4<f32> {
     let pattern_br_b = pattern_to.zw;
 
     // Sample pattern A
-    let imagecoord_a = gl_mod(in.v_pos_a, vec2<f32>(1.0));
+    let imagecoord_a = get_fit_image_coord(in.v_pos_a, in.fit, pattern_br_a - pattern_tl_a);
     let pos_a = mix(pattern_tl_a / tileProps.texsize, pattern_br_a / tileProps.texsize, imagecoord_a);
-    let color_a = textureSample(pattern_texture, texture_sampler, pos_a);
+    let color_a = textureSample(pattern_texture, texture_sampler, pos_a) * get_fit_image_alpha(in.v_pos_a, in.fit);
 
     // Sample pattern B
-    let imagecoord_b = gl_mod(in.v_pos_b, vec2<f32>(1.0));
+    let imagecoord_b = get_fit_image_coord(in.v_pos_b, in.fit, pattern_br_b - pattern_tl_b);
     let pos_b = mix(pattern_tl_b / tileProps.texsize, pattern_br_b / tileProps.texsize, imagecoord_b);
-    let color_b = textureSample(pattern_texture, texture_sampler, pos_b);
+    let color_b = textureSample(pattern_texture, texture_sampler, pos_b) * get_fit_image_alpha(in.v_pos_b, in.fit);
 
     // Mix patterns and apply opacity
     let opacity =

@@ -43,6 +43,24 @@ public:
     static constexpr const std::array<std::string_view, 1> AttributeNames = {A::name()};
 };
 
+/*
+ * A data-driven paint property that the renderer evaluates per feature itself,
+ * instead of through a paint property binder. Used for values that are not
+ * passed to shaders as they are, like fill-pattern-bounds, which becomes tile
+ * coordinates when the bucket is built.
+ */
+template <class T>
+class FeatureEvaluatedPaintProperty {
+public:
+    using TransitionableType = Transitionable<PropertyValue<T>>;
+    using UnevaluatedType = Transitioning<PropertyValue<T>>;
+    using EvaluatorType = DataDrivenPropertyEvaluator<T>;
+    using PossiblyEvaluatedType = PossiblyEvaluatedPropertyValue<T>;
+    using Type = T;
+    static constexpr bool IsDataDriven = false;
+    static constexpr bool IsOverridable = false;
+};
+
 template <class T, class A1, class U1, class A2, class U2>
 class CrossFadedDataDrivenPaintProperty {
 public:

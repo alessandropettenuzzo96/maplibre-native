@@ -49,9 +49,10 @@ struct alignas(16) FillPatternDrawableUBO {
     /* 88 */ float pattern_to_t;
     /* 92 */ float opacity_t;
     /* 96 */ float color_t;
-    /*100 */ float pad1;
-    /*104 */ float pad2;
-    /*108 */ float pad3;
+
+    // fill-pattern-fit and fill-pattern-anchor, see fillPatternFit()
+    /*100 */ float fit;
+    /*104 */ std::array<float, 2> anchor;
     /*112 */
 };
 static_assert(sizeof(FillPatternDrawableUBO) == 7 * 16);
@@ -80,9 +81,10 @@ struct alignas(16) FillOutlinePatternDrawableUBO {
     /* 88 */ float pattern_to_t;
     /* 92 */ float opacity_t;
     /* 96 */ float color_t;
-    /*100 */ float pad1;
-    /*104 */ float pad2;
-    /*108 */ float pad3;
+
+    // fill-pattern-fit and fill-pattern-anchor, as in FillPatternDrawableUBO
+    /*100 */ float fit;
+    /*104 */ std::array<float, 2> anchor;
     /*112 */
 };
 static_assert(sizeof(FillOutlinePatternDrawableUBO) == 7 * 16);

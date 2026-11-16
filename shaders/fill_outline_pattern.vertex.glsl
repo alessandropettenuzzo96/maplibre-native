@@ -20,9 +20,10 @@ layout (std140) uniform FillOutlinePatternDrawableUBO {
     highp float u_pattern_to_t;
     highp float u_opacity_t;
     highp float u_color_t;
-    lowp float drawable_pad1;
-    lowp float drawable_pad2;
-    lowp float drawable_pad3;
+    // fill-pattern-fit: 0 repeat without bounds, then repeat, fill, contain, cover, none, scale-down, scale-up
+    highp float u_fit;
+    // fill-pattern-anchor as fractions of the bounds, 0 at the top left
+    highp vec2 u_anchor;
 };
 
 layout (std140) uniform FillOutlinePatternTilePropsUBO {
@@ -43,10 +44,12 @@ layout (std140) uniform FillEvaluatedPropsUBO {
 };
 
 layout (location = 0) in vec2 a_pos;
+layout (location = 1) in highp vec4 a_pattern_bounds;
 
 out vec2 v_pos_a;
 out vec2 v_pos_b;
 out vec2 v_pos;
+out float v_fit;
 
 #pragma mapbox: define highp vec4 color
 #pragma mapbox: define lowp float opacity
@@ -74,8 +77,14 @@ void main() {
     vec2 display_size_a = vec2((pattern_br_a.x - pattern_tl_a.x) / pixelRatio, (pattern_br_a.y - pattern_tl_a.y) / pixelRatio);
     vec2 display_size_b = vec2((pattern_br_b.x - pattern_tl_b.x) / pixelRatio, (pattern_br_b.y - pattern_tl_b.y) / pixelRatio);
 
-    v_pos_a = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, fromScale * display_size_a, tileRatio, a_pos);
-    v_pos_b = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, toScale * display_size_b, tileRatio, a_pos);
+    v_fit = u_fit;
+    if (u_fit < 0.5) {
+        v_pos_a = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, fromScale * display_size_a, tileRatio, a_pos);
+        v_pos_b = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, toScale * display_size_b, tileRatio, a_pos);
+    } else {
+        v_pos_a = get_fit_pattern_pos(a_pattern_bounds, fromScale * display_size_a / tileRatio, u_fit, u_anchor, a_pos);
+        v_pos_b = get_fit_pattern_pos(a_pattern_bounds, toScale * display_size_b / tileRatio, u_fit, u_anchor, a_pos);
+    }
 
     v_pos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * u_world_size;
 }
