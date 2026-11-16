@@ -75,6 +75,12 @@ public:
     void setFillPatternFitTransition(const TransitionOptions&);
     TransitionOptions getFillPatternFitTransition() const;
 
+    static PropertyValue<float> getDefaultFillPatternScale();
+    const PropertyValue<float>& getFillPatternScale() const;
+    void setFillPatternScale(const PropertyValue<float>&);
+    void setFillPatternScaleTransition(const TransitionOptions&);
+    TransitionOptions getFillPatternScaleTransition() const;
+
     static PropertyValue<std::array<float, 2>> getDefaultFillTranslate();
     const PropertyValue<std::array<float, 2>>& getFillTranslate() const;
     void setFillTranslate(const PropertyValue<std::array<float, 2>>&);

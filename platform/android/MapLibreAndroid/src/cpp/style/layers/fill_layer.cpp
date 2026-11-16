@@ -243,6 +243,15 @@ jni::Local<jni::Object<>> FillLayer::getFillPatternBounds(jni::JNIEnv& env) {
     return std::move(*convert<jni::Local<jni::Object<>>>(env, toFillLayer(*layer).getFillPatternBounds()));
 }
 
+jni::Local<jni::Object<>> FillLayer::getFillPatternScale(jni::JNIEnv& env) {
+    using namespace mln::android::conversion;
+    auto layer = layerPtr.get();
+    if (!layer) {
+        return std::move(*convert<jni::Local<jni::Object<>>>(env, style::FillLayer::getDefaultFillPatternScale()));
+    }
+    return std::move(*convert<jni::Local<jni::Object<>>>(env, toFillLayer(*layer).getFillPatternScale()));
+}
+
 // FillJavaLayerPeerFactory
 
 FillJavaLayerPeerFactory::~FillJavaLayerPeerFactory() = default;
@@ -303,7 +312,8 @@ void FillJavaLayerPeerFactory::registerNative(jni::JNIEnv& env) {
         METHOD(&FillLayer::getFillPattern, "nativeGetFillPattern"),
         METHOD(&FillLayer::getFillPatternFit, "nativeGetFillPatternFit"),
         METHOD(&FillLayer::getFillPatternAnchor, "nativeGetFillPatternAnchor"),
-        METHOD(&FillLayer::getFillPatternBounds, "nativeGetFillPatternBounds"));
+        METHOD(&FillLayer::getFillPatternBounds, "nativeGetFillPatternBounds"),
+        METHOD(&FillLayer::getFillPatternScale, "nativeGetFillPatternScale"));
 }
 
 } // namespace android

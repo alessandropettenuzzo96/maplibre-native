@@ -58,6 +58,8 @@ public:
 
     jni::Local<jni::Object<jni::ObjectTag>> getFillPatternBounds(jni::JNIEnv&);
 
+    jni::Local<jni::Object<jni::ObjectTag>> getFillPatternScale(jni::JNIEnv&);
+
 }; // class FillLayer
 
 class FillJavaLayerPeerFactory final : public JavaLayerPeerFactory, public mln::FillLayerFactory {

@@ -477,4 +477,17 @@ public class FillLayerTest extends BaseLayerTest {
     layer.setProperties(fillPatternBounds(expression));
     assertEquals(layer.getFillPatternBounds().getExpression(), expression);
   }
+
+  @Test
+  @UiThreadTest
+  public void testFillPatternScaleAsConstant() {
+    Timber.i("fill-pattern-scale");
+    assertNotNull(layer);
+    assertNull(layer.getFillPatternScale().getValue());
+
+    // Set and Get
+    Float propertyValue = 0.3f;
+    layer.setProperties(fillPatternScale(propertyValue));
+    assertEquals(layer.getFillPatternScale().getValue(), propertyValue);
+  }
 }

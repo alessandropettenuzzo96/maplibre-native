@@ -120,8 +120,8 @@ mediump vec4 pattern_to = u_pattern_to;
         v_pos_a = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, fromScale * display_size_a, tileRatio, a_pos);
         v_pos_b = get_pattern_pos(u_pixel_coord_upper, u_pixel_coord_lower, toScale * display_size_b, tileRatio, a_pos);
     } else {
-        v_pos_a = get_fit_pattern_pos(a_pattern_bounds, fromScale * display_size_a / tileRatio, u_fit, u_anchor, a_pos);
-        v_pos_b = get_fit_pattern_pos(a_pattern_bounds, toScale * display_size_b / tileRatio, u_fit, u_anchor, a_pos);
+        v_pos_a = get_fit_pattern_pos(a_pattern_bounds, (u_fit > 1.5 ? 1.0 : fromScale) * display_size_a / tileRatio, u_fit, u_anchor, a_pos);
+        v_pos_b = get_fit_pattern_pos(a_pattern_bounds, (u_fit > 1.5 ? 1.0 : toScale) * display_size_b / tileRatio, u_fit, u_anchor, a_pos);
     }
 
     v_pos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * u_world_size;

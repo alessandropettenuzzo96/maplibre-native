@@ -248,4 +248,16 @@ modifiedReferenceSpec["paint_fill"]["fill-pattern-bounds"] = {
   "property-type": "data-driven"
 };
 
+modifiedReferenceSpec["paint_fill"]["fill-pattern-scale"] = {
+  "type": "number",
+  "default": 1,
+  "minimum": 0,
+  "units": "factor of the natural size",
+  "doc": "Scales the natural size of the image of `fill-pattern`: the size of the repeating pattern, and the size used by the `none`, `scale-down` and `scale-up` values of `fill-pattern-fit`. With `fill-pattern-fit` other than `repeat`, the natural size stays the same on screen at fractional zoom levels, so `scale-up` keeps the image at a fixed size on screen until the bounds cover more.",
+  "requires": ["fill-pattern"],
+  "expression": {"interpolated": true, "parameters": ["zoom"]},
+  "property-type": "data-constant",
+  "transition": false
+};
+
 export default modifiedReferenceSpec;

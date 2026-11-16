@@ -381,8 +381,8 @@ void main() {
         frag_pos_b = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, in_position);
     } else {
 #if !defined(HAS_UNIFORM_u_pattern_bounds)
-        frag_pos_a = get_fit_pattern_pos(in_pattern_bounds, fromScale * display_size_a / tileZoomRatio, frag_fit, drawable.anchor, in_position);
-        frag_pos_b = get_fit_pattern_pos(in_pattern_bounds, toScale * display_size_b / tileZoomRatio, frag_fit, drawable.anchor, in_position);
+        frag_pos_a = get_fit_pattern_pos(in_pattern_bounds, (frag_fit > 1.5 ? 1.0 : fromScale) * display_size_a / tileZoomRatio, frag_fit, drawable.anchor, in_position);
+        frag_pos_b = get_fit_pattern_pos(in_pattern_bounds, (frag_fit > 1.5 ? 1.0 : toScale) * display_size_b / tileZoomRatio, frag_fit, drawable.anchor, in_position);
 #endif
     }
 
@@ -654,8 +654,8 @@ void main() {
         frag_pos_b = get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, position2);
     } else {
 #if !defined(HAS_UNIFORM_u_pattern_bounds)
-        frag_pos_a = get_fit_pattern_pos(in_pattern_bounds, fromScale * display_size_a / tileZoomRatio, frag_fit, drawable.anchor, position2);
-        frag_pos_b = get_fit_pattern_pos(in_pattern_bounds, toScale * display_size_b / tileZoomRatio, frag_fit, drawable.anchor, position2);
+        frag_pos_a = get_fit_pattern_pos(in_pattern_bounds, (frag_fit > 1.5 ? 1.0 : fromScale) * display_size_a / tileZoomRatio, frag_fit, drawable.anchor, position2);
+        frag_pos_b = get_fit_pattern_pos(in_pattern_bounds, (frag_fit > 1.5 ? 1.0 : toScale) * display_size_b / tileZoomRatio, frag_fit, drawable.anchor, position2);
 #endif
     }
     frag_pos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0 * paintParams.world_size;

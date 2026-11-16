@@ -440,8 +440,8 @@ fn main(in: VertexInput) -> VertexOutput {
             pos
         );
     } else {
-        out.v_pos_a = get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, out.fit, drawable.anchor, pos);
-        out.v_pos_b = get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, out.fit, drawable.anchor, pos);
+        out.v_pos_a = get_fit_pattern_pos(pattern_bounds, select(fromScale, 1.0, out.fit > 1.5) * display_size_a / tileZoomRatio, out.fit, drawable.anchor, pos);
+        out.v_pos_b = get_fit_pattern_pos(pattern_bounds, select(toScale, 1.0, out.fit > 1.5) * display_size_b / tileZoomRatio, out.fit, drawable.anchor, pos);
     }
 #ifndef HAS_UNIFORM_u_color
     out.color = unpack_mix_color(in.color, drawable.color_t);
@@ -739,8 +739,8 @@ fn main(in: VertexInput) -> VertexOutput {
             pos
         );
     } else {
-        out.v_pos_a = get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, out.fit, drawable.anchor, pos);
-        out.v_pos_b = get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, out.fit, drawable.anchor, pos);
+        out.v_pos_a = get_fit_pattern_pos(pattern_bounds, select(fromScale, 1.0, out.fit > 1.5) * display_size_a / tileZoomRatio, out.fit, drawable.anchor, pos);
+        out.v_pos_b = get_fit_pattern_pos(pattern_bounds, select(toScale, 1.0, out.fit > 1.5) * display_size_b / tileZoomRatio, out.fit, drawable.anchor, pos);
     }
     // Fragment positions use a top-left origin, while NDC Y points up.
     out.v_pos = (ndcXY * vec2<f32>(1.0, -1.0) + vec2<f32>(1.0, 1.0)) * 0.5 * paintParams.world_size;

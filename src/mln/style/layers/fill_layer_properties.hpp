@@ -53,6 +53,10 @@ struct FillPatternFit : PaintProperty<FillPatternFitType> {
     static FillPatternFitType defaultValue() { return FillPatternFitType::Repeat; }
 };
 
+struct FillPatternScale : PaintProperty<float> {
+    static float defaultValue() { return 1.f; }
+};
+
 struct FillTranslate : PaintProperty<std::array<float, 2>> {
     static std::array<float, 2> defaultValue() { return {{0.f, 0.f}}; }
 };
@@ -74,6 +78,7 @@ class FillPaintProperties : public Properties<
     FillPatternAnchor,
     FillPatternBounds,
     FillPatternFit,
+    FillPatternScale,
     FillTranslate,
     FillTranslateAnchor
 > {};

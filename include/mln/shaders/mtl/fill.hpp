@@ -402,10 +402,10 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 #endif
     const float2 v_pos_a = fit < 0.5
         ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, postion)
-        : get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, fit, drawable.anchor, postion);
+        : get_fit_pattern_pos(pattern_bounds, (fit > 1.5 ? 1.0f : fromScale) * display_size_a / tileZoomRatio, fit, drawable.anchor, postion);
     const float2 v_pos_b = fit < 0.5
         ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, postion)
-        : get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, fit, drawable.anchor, postion);
+        : get_fit_pattern_pos(pattern_bounds, (fit > 1.5 ? 1.0f : toScale) * display_size_b / tileZoomRatio, fit, drawable.anchor, postion);
 
     return {
         .position       = drawable.matrix * float4(postion, 0, 1),
@@ -593,10 +593,10 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 #endif
     const float2 v_pos_a = fit < 0.5
         ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, fromScale * display_size_a, tileZoomRatio, pos2)
-        : get_fit_pattern_pos(pattern_bounds, fromScale * display_size_a / tileZoomRatio, fit, drawable.anchor, pos2);
+        : get_fit_pattern_pos(pattern_bounds, (fit > 1.5 ? 1.0f : fromScale) * display_size_a / tileZoomRatio, fit, drawable.anchor, pos2);
     const float2 v_pos_b = fit < 0.5
         ? get_pattern_pos(drawable.pixel_coord_upper, drawable.pixel_coord_lower, toScale * display_size_b, tileZoomRatio, pos2)
-        : get_fit_pattern_pos(pattern_bounds, toScale * display_size_b / tileZoomRatio, fit, drawable.anchor, pos2);
+        : get_fit_pattern_pos(pattern_bounds, (fit > 1.5 ? 1.0f : toScale) * display_size_b / tileZoomRatio, fit, drawable.anchor, pos2);
 
     return {
         .position       = position,

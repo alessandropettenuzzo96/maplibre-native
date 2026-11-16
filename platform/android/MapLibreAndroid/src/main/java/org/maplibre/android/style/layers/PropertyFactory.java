@@ -261,6 +261,26 @@ public class PropertyFactory {
   }
 
   /**
+   * Scales the natural size of the image of {@link PropertyFactory#fillPattern}: the size of the repeating pattern, and the size used by the `none`, `scale-down` and `scale-up` values of {@link Property.FILL_PATTERN_FIT}. With {@link Property.FILL_PATTERN_FIT} other than `repeat`, the natural size stays the same on screen at fractional zoom levels, so `scale-up` keeps the image at a fixed size on screen until the bounds cover more.
+   *
+   * @param value a Float value
+   * @return property wrapper around Float
+   */
+  public static PropertyValue<Float> fillPatternScale(Float value) {
+    return new PaintPropertyValue<>("fill-pattern-scale", value);
+  }
+
+  /**
+   * Scales the natural size of the image of {@link PropertyFactory#fillPattern}: the size of the repeating pattern, and the size used by the `none`, `scale-down` and `scale-up` values of {@link Property.FILL_PATTERN_FIT}. With {@link Property.FILL_PATTERN_FIT} other than `repeat`, the natural size stays the same on screen at fractional zoom levels, so `scale-up` keeps the image at a fixed size on screen until the bounds cover more.
+   *
+   * @param expression an expression statement
+   * @return property wrapper around an expression statement
+   */
+  public static PropertyValue<Expression> fillPatternScale(Expression expression) {
+    return new PaintPropertyValue<>("fill-pattern-scale", expression);
+  }
+
+  /**
    * The opacity at which the line will be drawn.
    *
    * @param value a Float value

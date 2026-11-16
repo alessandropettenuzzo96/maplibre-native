@@ -414,6 +414,18 @@ public class FillLayer extends Layer {
     return (PropertyValue<Float[]>) new PropertyValue("fill-pattern-bounds", nativeGetFillPatternBounds());
   }
 
+  /**
+   * Get the FillPatternScale property
+   *
+   * @return property wrapper value around Float
+   */
+  @NonNull
+  @SuppressWarnings("unchecked")
+  public PropertyValue<Float> getFillPatternScale() {
+    checkThread();
+    return (PropertyValue<Float>) new PropertyValue("fill-pattern-scale", nativeGetFillPatternScale());
+  }
+
   @NonNull
   @Keep
   private native Object nativeGetFillSortKey();
@@ -492,6 +504,10 @@ public class FillLayer extends Layer {
   @NonNull
   @Keep
   private native Object nativeGetFillPatternBounds();
+
+  @NonNull
+  @Keep
+  private native Object nativeGetFillPatternScale();
 
   @Override
   @Keep

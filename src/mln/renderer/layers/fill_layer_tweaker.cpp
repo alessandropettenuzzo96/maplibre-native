@@ -17,6 +17,9 @@
 #include <mln/util/convert.hpp>
 #include <mln/util/std.hpp>
 
+#include <algorithm>
+#include <cmath>
+
 namespace mln {
 
 using namespace style;
@@ -58,6 +61,20 @@ std::array<float, 2> fillPatternAnchor(const SymbolAnchorType anchor) {
     }
 }
 
+/// `fill-pattern-scale`, never zero.
+float fillPatternScale(const FillLayerProperties& props) {
+    return std::max(props.evaluated.get<FillPatternScale>(), 1e-6f);
+}
+
+/// Screen pixels per tile unit for the natural size of the image. A repeating pattern grows with
+/// the map between integer zoom levels and crossfades, as always: its scale goes through
+/// `from_scale` and `to_scale`. The fits other than repeat keep the natural size on screen, scaled
+/// by `fill-pattern-scale`, and the shaders ignore the crossfade scales for them.
+float fillPatternTileRatio(
+    const float tileRatio, const float fit, const float scale, const float zoom, const uint8_t intZoom) {
+    return fit > 1.5f ? tileRatio * std::exp2(zoom - static_cast<float>(intZoom)) / scale : tileRatio;
+}
+
 } // namespace
 
 void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters& parameters) {
@@ -81,8 +98,8 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             .outline_color = evaluated.get<FillOutlineColor>().constantOr(FillOutlineColor::defaultValue()),
             .opacity = evaluated.get<FillOpacity>().constantOr(FillOpacity::defaultValue()),
             .fade = crossfade.t,
-            .from_scale = crossfade.fromScale,
-            .to_scale = crossfade.toScale,
+            .from_scale = crossfade.fromScale * fillPatternScale(props),
+            .to_scale = crossfade.toScale * fillPatternScale(props),
         };
         context.emplaceOrUpdateUniformBuffer(evaluatedPropsUniformBuffer, &propsUBO);
         propertiesUpdated = false;
@@ -96,6 +113,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
     const auto intZoom = parameters.state.getIntegerZoom();
     const auto patternFit = fillPatternFit(props);
     const auto patternAnchor = fillPatternAnchor(evaluated.get<FillPatternAnchor>());
+    const auto patternScale = fillPatternScale(props);
 
 #if MLN_UBO_CONSOLIDATION
     int i = 0;
@@ -133,6 +151,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 
         // from FillPatternProgram::layoutUniformValues
         const auto tileRatio = 1.0f / tileID.pixelsToTileUnits(1.0f, intZoom);
+        const auto patternTileRatio = fillPatternTileRatio(tileRatio, patternFit, patternScale, zoom, intZoom);
         const int32_t tileSizeAtNearestZoom = static_cast<int32_t>(
             util::tileSize_D * parameters.state.zoomScale(intZoom - tileID.canonical.z));
         const int32_t pixelX = static_cast<int32_t>(
@@ -197,7 +216,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     .pixel_coord_upper = {static_cast<float>(pixelX >> 16), static_cast<float>(pixelY >> 16)},
 
                     .pixel_coord_lower = {static_cast<float>(pixelX & 0xFFFF), static_cast<float>(pixelY & 0xFFFF)},
-                    .tile_ratio = tileRatio,
+                    .tile_ratio = patternTileRatio,
 
                     .pattern_from_t = std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
                     .pattern_to_t = std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
@@ -236,7 +255,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
                     .pixel_coord_upper = {static_cast<float>(pixelX >> 16), static_cast<float>(pixelY >> 16)},
 
                     .pixel_coord_lower = {static_cast<float>(pixelX & 0xFFFF), static_cast<float>(pixelY & 0xFFFF)},
-                    .tile_ratio = tileRatio,
+                    .tile_ratio = patternTileRatio,
 
                     .pattern_from_t = std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
                     .pattern_to_t = std::get<0>(binders->get<FillPattern>()->interpolationFactor(zoom)),
