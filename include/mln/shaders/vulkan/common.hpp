@@ -75,8 +75,8 @@ vec2 get_pattern_pos(const vec2 pixel_coord_upper, const vec2 pixel_coord_lower,
     return (tile_units_to_pixels * pos + offset) / pattern_size;
 }
 
-// Position in the image of fill-pattern for fill-pattern-fit other than repeat
-// without bounds. bounds and natural_size are in tile units, the result is 0..1
+// Position in the image of fill-pattern when fill-pattern-bounds are set (fit > 0).
+// bounds and natural_size are in tile units, the result is 0..1
 // across the image (repeat wraps it later). fit: 1 repeat, 2 fill, 3 contain,
 // 4 cover, 5 none, 6 scale-down, 7 scale-up.
 vec2 get_fit_pattern_pos(const vec4 bounds, const vec2 natural_size, const float fit,

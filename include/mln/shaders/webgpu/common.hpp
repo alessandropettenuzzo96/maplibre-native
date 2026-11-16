@@ -84,8 +84,8 @@ fn get_pattern_pos(pixel_coord_upper: vec2<f32>, pixel_coord_lower: vec2<f32>,
     return (tile_units_to_pixels * pos + offset) / pattern_size;
 }
 
-// Position in the image of fill-pattern for fill-pattern-fit other than repeat
-// without bounds. bounds and natural_size are in tile units, the result is 0..1
+// Position in the image of fill-pattern when fill-pattern-bounds are set (fit > 0).
+// bounds and natural_size are in tile units, the result is 0..1
 // across the image (repeat wraps it later). fit: 1 repeat, 2 fill, 3 contain,
 // 4 cover, 5 none, 6 scale-down, 7 scale-up.
 fn get_fit_pattern_pos(bounds: vec4<f32>, natural_size: vec2<f32>, fit: f32,
